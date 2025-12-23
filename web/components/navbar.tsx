@@ -1,5 +1,6 @@
 
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 export function FloatingNavbar() {
     return (
@@ -10,9 +11,11 @@ export function FloatingNavbar() {
                 </div>
 
                 <div className="flex items-center gap-3">
-                    <Button className="bg-gray-900 text-white hover:bg-gray-800 rounded-xl px-5 h-9 text-sm shadow-md shadow-gray-200">
-                        Akses Portal
-                    </Button>
+                    <Link href="/login">
+                        <Button className="bg-gray-900 text-white hover:bg-gray-800 rounded-xl px-5 h-9 text-sm shadow-md shadow-gray-200">
+                            Akses Portal
+                        </Button>
+                    </Link>
                 </div>
             </nav>
         </div>
