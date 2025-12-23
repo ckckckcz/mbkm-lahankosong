@@ -71,3 +71,25 @@ export interface CustomTooltipProps {
 export interface SidebarProps {
     className?: string;
 }
+
+// --- Master Data Interfaces ---
+
+export interface Group {
+    id: number;
+    name: string;
+    status: 'Aktif' | 'Nonaktif';
+}
+
+export interface Shift {
+    id: number;
+    name: string;
+    startTime: string; // "08:00"
+    endTime: string;   // "16:00"
+    status: 'Aktif' | 'Nonaktif';
+}
+
+export interface ProductionLine {
+    id: number;
+    name: string;
+    status: 'Aktif' | 'Nonaktif';
+}

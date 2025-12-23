@@ -48,7 +48,7 @@ export function ProductionTable() {
                                 <th className="px-4 py-3">Berat</th>
                                 <th className="px-4 py-3">Kualitas</th>
                                 <th className="px-4 py-3">Input</th>
-                                <th className="px-4 py-3">Edit</th>
+                                <th className="px-4 py-3">Aksi</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100">

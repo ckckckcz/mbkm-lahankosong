@@ -1,4 +1,3 @@
-
 import { Activity, Percent, Thermometer, Scale } from "lucide-react";
 import {
     ProductionShiftData,
@@ -107,6 +106,31 @@ export class DashboardService {
                 bgColor: "bg-purple-50",
                 borderColor: "border-purple-100"
             }
+        ];
+    }
+
+    static getGroups(): any[] {
+        return [
+            { id: 1, name: 'Group Alpha', status: 'Aktif' },
+            { id: 2, name: 'Group Beta', status: 'Aktif' },
+            { id: 3, name: 'Group Gamma', status: 'Nonaktif' },
+        ];
+    }
+
+    static getShifts(): any[] {
+        return [
+            { id: 1, name: 'Shift 1', startTime: '07:00', endTime: '15:00', status: 'Aktif' },
+            { id: 2, name: 'Shift 2', startTime: '15:00', endTime: '23:00', status: 'Aktif' },
+            { id: 3, name: 'Shift 3', startTime: '23:00', endTime: '07:00', status: 'Aktif' },
+        ];
+    }
+
+    static getProductionLines(): any[] {
+        return [
+            { id: 1, name: 'Line A', status: 'Aktif' },
+            { id: 2, name: 'Line B', status: 'Aktif' },
+            { id: 3, name: 'Line C', status: 'Nonaktif' },
+            { id: 4, name: 'Line D', status: 'Aktif' },
         ];
     }
 }
