@@ -51,16 +51,16 @@ export class DashboardService {
 
     static getProductionItems(): ProductionItem[] {
         return [
-            { id: 1, group: "Alpha", shift: "Shift 1", line: "Line A", temperature: "85.2°C", weight: "12.4 kg", quality: "OK", inputMethod: "OCR" },
-            { id: 2, group: "Beta", shift: "Shift 2", line: "Line B", temperature: "84.8°C", weight: "12.6 kg", quality: "OK", inputMethod: "Manual" },
-            { id: 3, group: "Gamma", shift: "Shift 1", line: "Line A", temperature: "86.1°C", weight: "12.3 kg", quality: "NOT OK", inputMethod: "OCR" },
-            { id: 4, group: "Alpha", shift: "Shift 3", line: "Line C", temperature: "83.5°C", weight: "12.5 kg", quality: "OK", inputMethod: "OCR" },
-            { id: 5, group: "Delta", shift: "Shift 2", line: "Line B", temperature: "85.0°C", weight: "12.2 kg", quality: "OK", inputMethod: "Manual" },
-            { id: 6, group: "Beta", shift: "Shift 1", line: "Line A", temperature: "87.2°C", weight: "11.8 kg", quality: "NOT OK", inputMethod: "OCR" },
-            { id: 7, group: "Alpha", shift: "Shift 2", line: "Line C", temperature: "84.5°C", weight: "12.5 kg", quality: "OK", inputMethod: "OCR" },
-            { id: 8, group: "Gamma", shift: "Shift 3", line: "Line B", temperature: "85.4°C", weight: "12.7 kg", quality: "OK", inputMethod: "Manual" },
-            { id: 9, group: "Delta", shift: "Shift 1", line: "Line A", temperature: "83.9°C", weight: "12.4 kg", quality: "OK", inputMethod: "OCR" },
-            { id: 10, group: "Beta", shift: "Shift 2", line: "Line C", temperature: "86.0°C", weight: "12.1 kg", quality: "OK", inputMethod: "OCR" },
+            { id: 1, date: "2023-12-01", group: "Alpha", shift: "Shift 1", line: "Line A", temperature: "85.2°C", weight: "12.4 kg", quality: "OK", inputMethod: "OCR" },
+            { id: 2, date: "2023-12-01", group: "Beta", shift: "Shift 2", line: "Line B", temperature: "84.8°C", weight: "12.6 kg", quality: "OK", inputMethod: "Manual" },
+            { id: 3, date: "2023-12-01", group: "Gamma", shift: "Shift 1", line: "Line A", temperature: "86.1°C", weight: "12.3 kg", quality: "NOT OK", inputMethod: "OCR" },
+            { id: 4, date: "2023-12-02", group: "Alpha", shift: "Shift 3", line: "Line C", temperature: "83.5°C", weight: "12.5 kg", quality: "OK", inputMethod: "OCR" },
+            { id: 5, date: "2023-12-02", group: "Delta", shift: "Shift 2", line: "Line B", temperature: "85.0°C", weight: "12.2 kg", quality: "OK", inputMethod: "Manual" },
+            { id: 6, date: "2023-12-03", group: "Beta", shift: "Shift 1", line: "Line A", temperature: "87.2°C", weight: "11.8 kg", quality: "NOT OK", inputMethod: "OCR" },
+            { id: 7, date: "2023-12-03", group: "Alpha", shift: "Shift 2", line: "Line C", temperature: "84.5°C", weight: "12.5 kg", quality: "OK", inputMethod: "OCR" },
+            { id: 8, date: "2023-12-03", group: "Gamma", shift: "Shift 3", line: "Line B", temperature: "85.4°C", weight: "12.7 kg", quality: "OK", inputMethod: "Manual" },
+            { id: 9, date: "2023-12-04", group: "Delta", shift: "Shift 1", line: "Line A", temperature: "83.9°C", weight: "12.4 kg", quality: "OK", inputMethod: "OCR" },
+            { id: 10, date: "2023-12-04", group: "Beta", shift: "Shift 2", line: "Line C", temperature: "86.0°C", weight: "12.1 kg", quality: "OK", inputMethod: "OCR" },
         ];
     }
 

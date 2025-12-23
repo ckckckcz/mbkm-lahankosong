@@ -39,6 +39,7 @@ export interface TrendData {
 
 export interface ProductionItem {
     id: number;
+    date: string;
     group: string;
     shift: string;
     line: string;

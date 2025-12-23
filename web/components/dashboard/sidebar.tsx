@@ -10,6 +10,7 @@ import {
     Factory,
     ChevronDown,
     ChevronRight,
+    Activity
 } from "lucide-react"
 import { useState } from "react"
 import { cn } from "@/lib/utils"
@@ -45,6 +46,15 @@ export function Sidebar({ className }: SidebarProps) {
                         )}>
                             <LayoutDashboard className="mr-3 h-4 w-4" />
                             Home
+                        </span>
+                    </Link>
+                    <Link href="/dashboard/operations">
+                        <span className={cn(
+                            "flex items-center rounded-lg px-3 mb-2 py-2 text-sm font-semibold cursor-pointer transition-colors hover:bg-green-50 hover:text-green-700",
+                            pathname === "/dashboard/operations" ? "bg-green-50 text-green-700" : "text-gray-700"
+                        )}>
+                            <Activity className="mr-3 h-4 w-4" />
+                            Operations
                         </span>
                     </Link>
                     <div>

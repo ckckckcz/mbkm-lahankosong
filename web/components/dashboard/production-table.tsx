@@ -1,4 +1,4 @@
-import { Search, SlidersHorizontal, MoreHorizontal, Download } from "lucide-react"
+import { Search, SlidersHorizontal, Edit2, Trash2, Download } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { DashboardService } from "@/services/dashboard.service"
@@ -73,9 +73,14 @@ export function ProductionTable() {
                                         </span>
                                     </td>
                                     <td className="px-4 py-3">
-                                        <button className="text-gray-400 hover:text-gray-600">
-                                            <MoreHorizontal className="h-4 w-4" />
-                                        </button>
+                                        <div className="flex items-center gap-2">
+                                            <Button variant="ghost" size="icon" className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50">
+                                                <Edit2 className="h-4 w-4" />
+                                            </Button>
+                                            <Button variant="ghost" size="icon" className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50">
+                                                <Trash2 className="h-4 w-4" />
+                                            </Button>
+                                        </div>
                                     </td>
                                 </tr>
                             ))}
