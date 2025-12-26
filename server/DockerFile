@@ -1,16 +1,16 @@
-FROM node:18
+FROM node:lts-alpine
 
-WORKDIR /app
+USER node
 
-# INSTALL PNPM (WAJIB)
-RUN npm install -g pnpm
+ENV HOME=/home/node PATH=/home/node/.local/bin:$PATH
 
-COPY package.json pnpm-lock.yaml ./
-RUN pnpm install --frozen-lockfile
+WORKDIR $HOME/app
 
-COPY . .
-RUN pnpm run build
+ADD . $HOME/app
+COPY --chown=node . $HOME/app
+
+RUN npm install
 
 EXPOSE 7860
 
-CMD ["pnpm", "start"]
+ENTRYPOINT ["nodejs", "./index.js"]

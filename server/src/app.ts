@@ -11,7 +11,6 @@ const app: Application = express();
 
 app.use(cors());
 app.use(express.json());
-
 app.get("/", async (req, res) => {
     try {
         const { error } = await supabase.from('groups').select('count', { count: 'exact', head: true });

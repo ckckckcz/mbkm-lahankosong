@@ -1,10 +1,9 @@
 ---
-title: Lahan Kosong Backend
-emoji: 🧠
-colorFrom: green
-colorTo: gray
+license: apache-2.0
+title: Node.js template
 sdk: docker
-pinned: false
+emoji: 🐢
+colorFrom: green
+colorTo: green
+short_description: A template for running Node.js in a Hugging Face Space
 ---
-
-Express TypeScript backend.
