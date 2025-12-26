@@ -1,13 +1,44 @@
 "use client"
+import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import Image from "next/image"
+import { AuthService } from "@/services/auth.service"
+import { AlertCircle, Loader2 } from "lucide-react"
 
 export function LoginForm() {
-    function handleSubmit(e: React.FormEvent) {
+    const router = useRouter()
+    const [isLoading, setIsLoading] = useState(false)
+    const [error, setError] = useState("")
+    const [formData, setFormData] = useState({
+        email: "",
+        password: ""
+    })
+
+    async function handleSubmit(e: React.FormEvent) {
         e.preventDefault()
-        console.log("Login submitted")
+        setIsLoading(true)
+        setError("")
+
+        try {
+            const data = await AuthService.login(formData.email, formData.password)
+
+            // Store token and user
+            if (typeof window !== 'undefined') {
+                localStorage.setItem('token', data.token)
+                localStorage.setItem('user', JSON.stringify(data.user))
+            }
+
+            // Redirect to dashboard
+            router.push("/dashboard")
+        } catch (err: any) {
+            console.error("Login error", err)
+            setError(err.message || "Gagal masuk. Periksa email dan password Anda.")
+        } finally {
+            setIsLoading(false)
+        }
     }
 
     return (
@@ -24,6 +55,12 @@ export function LoginForm() {
                 </div>
 
                 <form onSubmit={handleSubmit} className="grid gap-4">
+                    {error && (
+                        <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm flex items-center gap-2">
+                            <AlertCircle className="h-4 w-4" />
+                            {error}
+                        </div>
+                    )}
                     <div className="grid gap-2">
                         <Label htmlFor="email">Email</Label>
                         <Input
@@ -32,6 +69,9 @@ export function LoginForm() {
                             placeholder="Masukkan email Anda"
                             required
                             className="bg-gray-50 border-gray-200"
+                            value={formData.email}
+                            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                            disabled={isLoading}
                         />
                     </div>
                     <div className="grid gap-2">
@@ -44,13 +84,27 @@ export function LoginForm() {
                             required
                             placeholder="••••••••"
                             className="bg-gray-50 border-gray-200"
+                            value={formData.password}
+                            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                            disabled={isLoading}
                         />
                     </div>
 
-                    <Button type="submit" className="w-full bg-green-700 hover:bg-green-800 h-11 font-medium cursor-pointer shadow-lg shadow-green-700/20">
-                        Masuk
+                    <Button
+                        type="submit"
+                        className="w-full bg-green-700 hover:bg-green-800 h-11 font-medium cursor-pointer shadow-lg shadow-green-700/20"
+                        disabled={isLoading}
+                    >
+                        {isLoading ? (
+                            <>
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                Memproses...
+                            </>
+                        ) : (
+                            'Masuk'
+                        )}
                     </Button>
-                    <Button variant="outline" className="w-full h-11 font-medium cursor-pointer relative" type="button">
+                    <Button variant="outline" className="w-full h-11 font-medium cursor-pointer relative" type="button" disabled={isLoading}>
                         <svg className="mr-2 h-4 w-4" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512">
                             <path fill="currentColor" d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 123 24.5 166.3 64.9l-67.5 64.9C258.5 52.6 94.3 116.6 94.3 256c0 86.5 69.1 156.6 153.7 156.6 98.2 0 135-70.4 140.8-106.9H248v-85.3h236.1c2.3 12.7 3.9 24.9 3.9 41.4z"></path>
                         </svg>

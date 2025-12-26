@@ -5,6 +5,7 @@ import groupsRoutes from "./routes/groupsRoutes";
 import shiftsRoutes from "./routes/shiftsRoutes";
 import productionLinesRoutes from "./routes/productionLinesRoutes";
 import operationsRoutes from "./routes/operationsRoutes";
+import authRoutes from "./routes/authRoutes";
 
 const app: Application = express();
 
@@ -35,5 +36,6 @@ app.use("/api/groups", groupsRoutes);
 app.use("/api/shifts", shiftsRoutes);
 app.use("/api/production-lines", productionLinesRoutes);
 app.use("/api/operations", operationsRoutes);
+app.use("/api/auth", authRoutes);
 
 export default app;
