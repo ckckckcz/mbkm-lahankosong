@@ -45,6 +45,11 @@ export interface ProductionItem {
     line: string;
     temperature: string;
     weight: string;
+    temperature_val?: number;
+    weight_val?: number;
+    group_id?: number;
+    shift_id?: number;
+    production_line_id?: number;
     quality: "OK" | "NOT OK";
     inputMethod: "OCR" | "Manual";
 }
@@ -78,19 +83,19 @@ export interface SidebarProps {
 export interface Group {
     id: number;
     name: string;
-    status: 'Aktif' | 'Nonaktif';
+    status: 'Aktif' | 'Tidak Aktif';
 }
 
 export interface Shift {
     id: number;
     name: string;
-    startTime: string; // "08:00"
-    endTime: string;   // "16:00"
-    status: 'Aktif' | 'Nonaktif';
+    start_time: string; // "08:00"
+    end_time: string;   // "16:00"
+    status: 'Aktif' | 'Tidak Aktif';
 }
 
 export interface ProductionLine {
     id: number;
     name: string;
-    status: 'Aktif' | 'Nonaktif';
+    status: 'Aktif' | 'Tidak Aktif';
 }

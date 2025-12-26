@@ -4,8 +4,8 @@ import { Input } from "@/components/ui/input"
 import { DashboardService } from "@/services/dashboard.service"
 import { ProductionItem } from "@/interfaces/dashboard"
 
-export function ProductionTable() {
-    const productionData: ProductionItem[] = DashboardService.getProductionItems();
+export async function ProductionTable() {
+    const productionData = await DashboardService.getProductionItems();
 
     return (
         <div className="space-y-3">

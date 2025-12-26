@@ -6,10 +6,173 @@ import {
     QualityData,
     TrendData,
     ProductionItem,
-    OverviewStat
+    OverviewStat,
+    Group,
+    Shift,
+    ProductionLine
 } from "@/interfaces/dashboard";
 
+
+const API_URL = "http://localhost:5000/api";
+const BASE_URL = "http://localhost:5000";
+
 export class DashboardService {
+    static async checkConnection(): Promise<boolean> {
+        try {
+            const res = await fetch(`${BASE_URL}/`);
+            return res.ok;
+        } catch (error) {
+            console.error("Connection check failed", error);
+            return false;
+        }
+    }
+
+    // --- Master Data: Groups ---
+    static async getGroups(): Promise<Group[]> {
+        const res = await fetch(`${API_URL}/groups`);
+        if (!res.ok) throw new Error("Failed to fetch groups");
+        return res.json();
+    }
+
+    static async createGroup(group: Partial<Group>): Promise<Group> {
+        const res = await fetch(`${API_URL}/groups`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(group)
+        });
+        if (!res.ok) throw new Error("Failed to create group");
+        return res.json();
+    }
+
+    static async updateGroup(id: number | string, group: Partial<Group>): Promise<Group> {
+        const res = await fetch(`${API_URL}/groups/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(group)
+        });
+        if (!res.ok) throw new Error("Failed to update group");
+        return res.json();
+    }
+
+    static async deleteGroup(id: number | string): Promise<void> {
+        const res = await fetch(`${API_URL}/groups/${id}`, { method: 'DELETE' });
+        if (!res.ok) throw new Error("Failed to delete group");
+    }
+
+    // --- Master Data: Shifts ---
+    static async getShifts(): Promise<any[]> {
+        const res = await fetch(`${API_URL}/shifts`);
+        if (!res.ok) throw new Error("Failed to fetch shifts");
+        return res.json();
+    }
+
+    static async createShift(shift: any): Promise<any> {
+        const res = await fetch(`${API_URL}/shifts`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(shift)
+        });
+        if (!res.ok) throw new Error("Failed to create shift");
+        return res.json();
+    }
+
+    static async updateShift(id: number | string, shift: any): Promise<any> {
+        const res = await fetch(`${API_URL}/shifts/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(shift)
+        });
+        if (!res.ok) throw new Error("Failed to update shift");
+        return res.json();
+    }
+
+    static async deleteShift(id: number | string): Promise<void> {
+        const res = await fetch(`${API_URL}/shifts/${id}`, { method: 'DELETE' });
+        if (!res.ok) throw new Error("Failed to delete shift");
+    }
+
+    // --- Master Data: Production Lines ---
+    static async getProductionLines(): Promise<any[]> {
+        const res = await fetch(`${API_URL}/production-lines`);
+        if (!res.ok) throw new Error("Failed to fetch production lines");
+        return res.json();
+    }
+
+    static async createProductionLine(line: any): Promise<any> {
+        const res = await fetch(`${API_URL}/production-lines`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(line)
+        });
+        if (!res.ok) throw new Error("Failed to create production line");
+        return res.json();
+    }
+
+    static async updateProductionLine(id: number | string, line: any): Promise<any> {
+        const res = await fetch(`${API_URL}/production-lines/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(line)
+        });
+        if (!res.ok) throw new Error("Failed to update production line");
+        return res.json();
+    }
+
+    static async deleteProductionLine(id: number | string): Promise<void> {
+        const res = await fetch(`${API_URL}/production-lines/${id}`, { method: 'DELETE' });
+        if (!res.ok) throw new Error("Failed to delete production line");
+    }
+
+    // --- Operations ---
+    static async getProductionItems(): Promise<ProductionItem[]> {
+        const res = await fetch(`${API_URL}/operations`);
+        if (!res.ok) throw new Error("Failed to fetch operations");
+        const data = await res.json();
+        // Transform data if needed to match frontend interface
+        return data.map((item: any) => ({
+            id: item.id,
+            date: item.date,
+            group: item.groups?.name || 'Unknown',
+            shift: item.shifts?.name || 'Unknown',
+            line: item.production_lines?.name || 'Unknown',
+            group_id: item.group_id,
+            shift_id: item.shift_id,
+            production_line_id: item.production_line_id,
+            temperature: `${item.temperature}°C`,
+            weight: `${item.weight} kg`,
+            temperature_val: item.temperature,
+            weight_val: item.weight,
+            quality: item.quality,
+            inputMethod: item.input_method
+        }));
+    }
+
+    static async createOperation(operation: any): Promise<any> {
+        const res = await fetch(`${API_URL}/operations`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(operation)
+        });
+        if (!res.ok) throw new Error("Failed to create operation");
+        return res.json();
+    }
+
+    static async updateOperation(id: number | string, operation: any): Promise<any> {
+        const res = await fetch(`${API_URL}/operations/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(operation)
+        });
+        if (!res.ok) throw new Error("Failed to update operation");
+        return res.json();
+    }
+
+    static async deleteOperation(id: number | string): Promise<void> {
+        const res = await fetch(`${API_URL}/operations/${id}`, { method: 'DELETE' });
+        if (!res.ok) throw new Error("Failed to delete operation");
+    }
+
+
     static getProductionShiftData(): ProductionShiftData[] {
         return [
             { name: 'Shift 1', OK: 380, NotOK: 20 },
@@ -47,21 +210,6 @@ export class DashboardService {
             Suhu: Math.floor(Math.random() * (90 - 80) + 80), // 80-90
             Berat: Math.floor(Math.random() * (14 - 11) + 11) + Math.random(), // 11-14
         }));
-    }
-
-    static getProductionItems(): ProductionItem[] {
-        return [
-            { id: 1, date: "2023-12-01", group: "Alpha", shift: "Shift 1", line: "Line A", temperature: "85.2°C", weight: "12.4 kg", quality: "OK", inputMethod: "OCR" },
-            { id: 2, date: "2023-12-01", group: "Beta", shift: "Shift 2", line: "Line B", temperature: "84.8°C", weight: "12.6 kg", quality: "OK", inputMethod: "Manual" },
-            { id: 3, date: "2023-12-01", group: "Gamma", shift: "Shift 1", line: "Line A", temperature: "86.1°C", weight: "12.3 kg", quality: "NOT OK", inputMethod: "OCR" },
-            { id: 4, date: "2023-12-02", group: "Alpha", shift: "Shift 3", line: "Line C", temperature: "83.5°C", weight: "12.5 kg", quality: "OK", inputMethod: "OCR" },
-            { id: 5, date: "2023-12-02", group: "Delta", shift: "Shift 2", line: "Line B", temperature: "85.0°C", weight: "12.2 kg", quality: "OK", inputMethod: "Manual" },
-            { id: 6, date: "2023-12-03", group: "Beta", shift: "Shift 1", line: "Line A", temperature: "87.2°C", weight: "11.8 kg", quality: "NOT OK", inputMethod: "OCR" },
-            { id: 7, date: "2023-12-03", group: "Alpha", shift: "Shift 2", line: "Line C", temperature: "84.5°C", weight: "12.5 kg", quality: "OK", inputMethod: "OCR" },
-            { id: 8, date: "2023-12-03", group: "Gamma", shift: "Shift 3", line: "Line B", temperature: "85.4°C", weight: "12.7 kg", quality: "OK", inputMethod: "Manual" },
-            { id: 9, date: "2023-12-04", group: "Delta", shift: "Shift 1", line: "Line A", temperature: "83.9°C", weight: "12.4 kg", quality: "OK", inputMethod: "OCR" },
-            { id: 10, date: "2023-12-04", group: "Beta", shift: "Shift 2", line: "Line C", temperature: "86.0°C", weight: "12.1 kg", quality: "OK", inputMethod: "OCR" },
-        ];
     }
 
     static getOverviewStats(): OverviewStat[] {
@@ -106,31 +254,6 @@ export class DashboardService {
                 bgColor: "bg-purple-50",
                 borderColor: "border-purple-100"
             }
-        ];
-    }
-
-    static getGroups(): any[] {
-        return [
-            { id: 1, name: 'Group Alpha', status: 'Aktif' },
-            { id: 2, name: 'Group Beta', status: 'Aktif' },
-            { id: 3, name: 'Group Gamma', status: 'Nonaktif' },
-        ];
-    }
-
-    static getShifts(): any[] {
-        return [
-            { id: 1, name: 'Shift 1', startTime: '07:00', endTime: '15:00', status: 'Aktif' },
-            { id: 2, name: 'Shift 2', startTime: '15:00', endTime: '23:00', status: 'Aktif' },
-            { id: 3, name: 'Shift 3', startTime: '23:00', endTime: '07:00', status: 'Aktif' },
-        ];
-    }
-
-    static getProductionLines(): any[] {
-        return [
-            { id: 1, name: 'Line A', status: 'Aktif' },
-            { id: 2, name: 'Line B', status: 'Aktif' },
-            { id: 3, name: 'Line C', status: 'Nonaktif' },
-            { id: 4, name: 'Line D', status: 'Aktif' },
         ];
     }
 }

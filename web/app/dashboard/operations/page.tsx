@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { DashboardService } from "@/services/dashboard.service"
 import { ProductionItem, Group, Shift, ProductionLine } from "@/interfaces/dashboard"
 import { Plus, Edit2, Trash2, Save, X } from "lucide-react"
@@ -9,59 +9,119 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
 export default function OperationsPage() {
-    const [operations, setOperations] = useState<ProductionItem[]>(DashboardService.getProductionItems())
+    const [operations, setOperations] = useState<ProductionItem[]>([])
+    const [groups, setGroups] = useState<Group[]>([])
+    const [shifts, setShifts] = useState<Shift[]>([])
+    const [lines, setLines] = useState<ProductionLine[]>([])
+    const [isLoading, setIsLoading] = useState(true)
 
-    // Master data for dropdowns
-    const [groups] = useState<Group[]>(DashboardService.getGroups())
-    const [shifts] = useState<Shift[]>(DashboardService.getShifts())
-    const [lines] = useState<ProductionLine[]>(DashboardService.getProductionLines())
-
-    const [isAdding, setIsAdding] = useState(false)
+    const [isFormOpen, setIsFormOpen] = useState(false)
+    const [editingId, setEditingId] = useState<number | null>(null)
 
     // Form States
-    const [newOp, setNewOp] = useState<Partial<ProductionItem>>({
+    const [formData, setFormData] = useState({
         date: new Date().toISOString().split('T')[0],
-        group: "",
-        shift: "",
-        line: "",
+        group_id: "",
+        shift_id: "",
+        production_line_id: "",
         temperature: "",
         weight: "",
         quality: "OK",
         inputMethod: "Manual"
     })
 
-    const handleAdd = () => {
-        if (!newOp.group || !newOp.shift || !newOp.line || !newOp.temperature || !newOp.weight) return
+    useEffect(() => {
+        fetchAllData();
+    }, []);
 
-        const newItem: ProductionItem = {
-            id: operations.length + 1,
-            date: newOp.date || "",
-            group: newOp.group,
-            shift: newOp.shift,
-            line: newOp.line,
-            temperature: `${newOp.temperature}°C`,
-            weight: `${newOp.weight} kg`,
-            quality: newOp.quality as "OK" | "NOT OK",
-            inputMethod: newOp.inputMethod as "OCR" | "Manual"
+    const fetchAllData = async () => {
+        setIsLoading(true);
+        try {
+            const [opsData, groupsData, shiftsData, linesData] = await Promise.all([
+                DashboardService.getProductionItems(),
+                DashboardService.getGroups(),
+                DashboardService.getShifts(),
+                DashboardService.getProductionLines()
+            ]);
+            setOperations(opsData);
+            setGroups(groupsData);
+            setShifts(shiftsData);
+            setLines(linesData);
+        } catch (error) {
+            console.error("Failed to fetch data", error);
+        } finally {
+            setIsLoading(false);
         }
+    }
 
-        setOperations([...operations, newItem])
-        setIsAdding(false)
-        setNewOp({
+    const resetForm = () => {
+        setFormData({
             date: new Date().toISOString().split('T')[0],
-            group: "",
-            shift: "",
-            line: "",
+            group_id: "",
+            shift_id: "",
+            production_line_id: "",
             temperature: "",
             weight: "",
             quality: "OK",
             inputMethod: "Manual"
-        })
+        });
+        setEditingId(null);
+        setIsFormOpen(false);
     }
 
-    const handleDelete = (id: number) => {
+    const handleEdit = (op: ProductionItem) => {
+        setFormData({
+            date: op.date,
+            group_id: op.group_id?.toString() || "",
+            shift_id: op.shift_id?.toString() || "",
+            production_line_id: op.production_line_id?.toString() || "",
+            temperature: op.temperature_val?.toString() || parseFloat(op.temperature).toString() || "",
+            weight: op.weight_val?.toString() || parseFloat(op.weight).toString() || "",
+            quality: op.quality,
+            inputMethod: op.inputMethod
+        });
+        setEditingId(op.id);
+        setIsFormOpen(true);
+    }
+
+    const handleSave = async () => {
+        if (!formData.group_id || !formData.shift_id || !formData.production_line_id || !formData.temperature || !formData.weight) return
+
+        const payload = {
+            date: formData.date,
+            group_id: Number(formData.group_id),
+            shift_id: Number(formData.shift_id),
+            production_line_id: Number(formData.production_line_id),
+            temperature: Number(formData.temperature),
+            weight: Number(formData.weight),
+            quality: formData.quality,
+            input_method: formData.inputMethod
+        };
+
+        try {
+            if (editingId) {
+                await DashboardService.updateOperation(editingId, payload);
+            } else {
+                await DashboardService.createOperation(payload);
+            }
+
+            await fetchAllData();
+            resetForm();
+        } catch (error) {
+            console.error("Failed to save operation", error);
+            alert("Gagal menyimpan data operasi");
+        }
+    }
+
+    const handleDelete = async (id: number) => {
         if (confirm("Apakah anda yakin ingin menghapus data operasi ini?")) {
-            setOperations(operations.filter(op => op.id !== id))
+            try {
+                await DashboardService.deleteOperation(id);
+                setOperations(operations.filter(op => op.id !== id))
+            } catch (error) {
+                console.error("Failed to delete operation", error);
+                alert("Gagal menghapus data operasi");
+            }
         }
     }
 
@@ -70,24 +130,29 @@ export default function OperationsPage() {
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                 <h1 className="text-2xl font-bold text-gray-800">Manajemen Operasi Produksi</h1>
                 <Button
-                    onClick={() => setIsAdding(!isAdding)}
-                    className={`gap-2 text-white transition-colors ${isAdding ? 'bg-red-600 hover:bg-red-700' : 'bg-green-600 hover:bg-green-700'}`}
+                    onClick={() => {
+                        if (isFormOpen) resetForm();
+                        else setIsFormOpen(true);
+                    }}
+                    className={`gap-2 text-white transition-colors ${isFormOpen ? 'bg-red-600 hover:bg-red-700' : 'bg-green-600 hover:bg-green-700'}`}
                 >
-                    {isAdding ? <X className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
-                    {isAdding ? 'Batal' : 'Tambah Operasi'}
+                    {isFormOpen ? <X className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+                    {isFormOpen ? 'Batal' : 'Tambah Operasi'}
                 </Button>
             </div>
 
-            {isAdding && (
+            {isFormOpen && (
                 <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm animate-in fade-in slide-in-from-top-2">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Input Data Operasi Baru</h3>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                        {editingId ? 'Edit Data Operasi' : 'Input Data Operasi Baru'}
+                    </h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
                         <div className="space-y-2">
                             <Label>Tanggal</Label>
                             <Input
                                 type="date"
-                                value={newOp.date}
-                                onChange={(e) => setNewOp({ ...newOp, date: e.target.value })}
+                                value={formData.date}
+                                onChange={(e) => setFormData({ ...formData, date: e.target.value })}
                                 className="bg-white"
                             />
                         </div>
@@ -95,12 +160,12 @@ export default function OperationsPage() {
                             <Label>Group</Label>
                             <select
                                 className="flex h-10 w-full rounded-md border border-input bg-white px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                                value={newOp.group}
-                                onChange={(e) => setNewOp({ ...newOp, group: e.target.value })}
+                                value={formData.group_id}
+                                onChange={(e) => setFormData({ ...formData, group_id: e.target.value })}
                             >
                                 <option value="">Pilih Group</option>
                                 {groups.map(g => (
-                                    <option key={g.id} value={g.name}>{g.name}</option>
+                                    <option key={g.id} value={g.id}>{g.name}</option>
                                 ))}
                             </select>
                         </div>
@@ -108,12 +173,12 @@ export default function OperationsPage() {
                             <Label>Shift</Label>
                             <select
                                 className="flex h-10 w-full rounded-md border border-input bg-white px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                                value={newOp.shift}
-                                onChange={(e) => setNewOp({ ...newOp, shift: e.target.value })}
+                                value={formData.shift_id}
+                                onChange={(e) => setFormData({ ...formData, shift_id: e.target.value })}
                             >
                                 <option value="">Pilih Shift</option>
                                 {shifts.map(s => (
-                                    <option key={s.id} value={s.name}>{s.name}</option>
+                                    <option key={s.id} value={s.id}>{s.name}</option>
                                 ))}
                             </select>
                         </div>
@@ -121,12 +186,12 @@ export default function OperationsPage() {
                             <Label>Production Line</Label>
                             <select
                                 className="flex h-10 w-full rounded-md border border-input bg-white px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                                value={newOp.line}
-                                onChange={(e) => setNewOp({ ...newOp, line: e.target.value })}
+                                value={formData.production_line_id}
+                                onChange={(e) => setFormData({ ...formData, production_line_id: e.target.value })}
                             >
                                 <option value="">Pilih Line</option>
                                 {lines.map(l => (
-                                    <option key={l.id} value={l.name}>{l.name}</option>
+                                    <option key={l.id} value={l.id}>{l.name}</option>
                                 ))}
                             </select>
                         </div>
@@ -136,8 +201,9 @@ export default function OperationsPage() {
                             <Input
                                 type="number"
                                 placeholder="85.0"
-                                value={newOp.temperature}
-                                onChange={(e) => setNewOp({ ...newOp, temperature: e.target.value })}
+                                step="0.1"
+                                value={formData.temperature}
+                                onChange={(e) => setFormData({ ...formData, temperature: e.target.value })}
                                 className="bg-white"
                             />
                         </div>
@@ -146,8 +212,9 @@ export default function OperationsPage() {
                             <Input
                                 type="number"
                                 placeholder="12.5"
-                                value={newOp.weight}
-                                onChange={(e) => setNewOp({ ...newOp, weight: e.target.value })}
+                                step="0.1"
+                                value={formData.weight}
+                                onChange={(e) => setFormData({ ...formData, weight: e.target.value })}
                                 className="bg-white"
                             />
                         </div>
@@ -155,8 +222,8 @@ export default function OperationsPage() {
                             <Label>Kualitas</Label>
                             <select
                                 className="flex h-10 w-full rounded-md border border-input bg-white px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                                value={newOp.quality}
-                                onChange={(e) => setNewOp({ ...newOp, quality: e.target.value as any })}
+                                value={formData.quality}
+                                onChange={(e) => setFormData({ ...formData, quality: e.target.value })}
                             >
                                 <option value="OK">OK</option>
                                 <option value="NOT OK">NOT OK</option>
@@ -166,8 +233,8 @@ export default function OperationsPage() {
                             <Label>Input Method</Label>
                             <select
                                 className="flex h-10 w-full rounded-md border border-input bg-white px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                                value={newOp.inputMethod}
-                                onChange={(e) => setNewOp({ ...newOp, inputMethod: e.target.value as any })}
+                                value={formData.inputMethod}
+                                onChange={(e) => setFormData({ ...formData, inputMethod: e.target.value })}
                             >
                                 <option value="Manual">Manual</option>
                                 <option value="OCR">OCR</option>
@@ -175,7 +242,7 @@ export default function OperationsPage() {
                         </div>
                     </div>
                     <div className="flex justify-end">
-                        <Button onClick={handleAdd} className="gap-2 bg-blue-600 hover:bg-blue-700 text-white w-full sm:w-auto">
+                        <Button onClick={handleSave} className="gap-2 bg-blue-600 hover:bg-blue-700 text-white w-full sm:w-auto">
                             <Save className="h-4 w-4" /> Simpan Data
                         </Button>
                     </div>
@@ -223,7 +290,12 @@ export default function OperationsPage() {
                                     </td>
                                     <td className="px-6 py-4">
                                         <div className="flex items-center gap-2">
-                                            <Button variant="ghost" size="icon" className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50">
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                                                onClick={() => handleEdit(op)}
+                                            >
                                                 <Edit2 className="h-4 w-4" />
                                             </Button>
                                             <Button variant="ghost" size="icon" className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50" onClick={() => handleDelete(op.id)}>
@@ -236,7 +308,7 @@ export default function OperationsPage() {
                             {operations.length === 0 && (
                                 <tr>
                                     <td colSpan={10} className="px-6 py-8 text-center text-gray-500">
-                                        Belum ada data operasi.
+                                        {isLoading ? 'Loading data...' : 'Belum ada data operasi.'}
                                     </td>
                                 </tr>
                             )}
