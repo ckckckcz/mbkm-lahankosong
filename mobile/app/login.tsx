@@ -1,11 +1,12 @@
-import { View, Text, StyleSheet, Image, TextInput, Pressable, Dimensions, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, Image, TextInput, Pressable, Dimensions, KeyboardAvoidingView, Platform, ScrollView, Alert, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 
-const { width } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
+const API_URL = 'http://192.168.240.147:7860/api/auth/login';
 
 export default function LoginScreen() {
     const router = useRouter();
@@ -13,10 +14,48 @@ export default function LoginScreen() {
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [rememberMe, setRememberMe] = useState(true);
+    const [isLoading, setIsLoading] = useState(false);
 
-    const handleLogin = () => {
-        // Navigate to Main App
-        router.replace('/(tabs)');
+    const handleLogin = async () => {
+        // Validation
+        if (!email || !password) {
+            Alert.alert('Error', 'Please fill in both email and password.');
+            return;
+        }
+
+        setIsLoading(true);
+
+        try {
+            console.log("Attempting login to:", API_URL);
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ email, password }),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Login failed');
+            }
+
+            // Success
+            console.log("Login successful:", data);
+            // Here you would typically store the token
+            // await AsyncStorage.setItem('token', data.token); 
+
+            Alert.alert('Success', 'Login successful!', [
+                { text: 'OK', onPress: () => router.replace('/(tabs)') }
+            ]);
+
+        } catch (error: any) {
+            console.error("Login error:", error);
+            Alert.alert('Login Failed', error.message || 'Something went wrong. Please try again.');
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
@@ -58,6 +97,7 @@ export default function LoginScreen() {
                             onChangeText={setEmail}
                             keyboardType="email-address"
                             autoCapitalize="none"
+                            editable={!isLoading}
                         />
                     </View>
 
@@ -74,6 +114,7 @@ export default function LoginScreen() {
                                 secureTextEntry={!showPassword}
                                 value={password}
                                 onChangeText={setPassword}
+                                editable={!isLoading}
                             />
                             <Pressable onPress={() => setShowPassword(!showPassword)} style={styles.eyeIcon}>
                                 <Ionicons name={showPassword ? "eye-off-outline" : "eye-outline"} size={20} color="#6b7280" />
@@ -82,7 +123,7 @@ export default function LoginScreen() {
                     </View>
 
                     {/* Remember Me */}
-                    <Pressable style={styles.checkboxContainer} onPress={() => setRememberMe(!rememberMe)}>
+                    <Pressable style={styles.checkboxContainer} onPress={() => setRememberMe(!rememberMe)} disabled={isLoading}>
                         <View style={[styles.checkbox, rememberMe && styles.checkboxChecked]}>
                             {rememberMe && <Ionicons name="checkmark" size={12} color="#fff" />}
                         </View>
@@ -90,9 +131,26 @@ export default function LoginScreen() {
                     </Pressable>
 
                     {/* Login Button */}
-                    <Pressable style={styles.loginButton} onPress={handleLogin}>
-                        <Text style={styles.loginButtonText}>Masuk</Text>
+                    <Pressable
+                        style={[styles.loginButton, isLoading && styles.loginButtonDisabled]}
+                        onPress={handleLogin}
+                        disabled={isLoading}
+                    >
+                        {isLoading ? (
+                            <ActivityIndicator color="#fff" />
+                        ) : (
+                            <Text style={styles.loginButtonText}>Masuk</Text>
+                        )}
                     </Pressable>
+
+                    {/* Footer */}
+                    <View style={styles.footer}>
+                        <Text style={styles.footerText}>Don't have an account? </Text>
+                        <Pressable disabled={isLoading}>
+                            <Text style={styles.signUpText}>Sign up</Text>
+                        </Pressable>
+                    </View>
+
                 </Animated.View>
             </ScrollView>
         </KeyboardAvoidingView>
@@ -250,6 +308,11 @@ const styles = StyleSheet.create({
         shadowRadius: 16,
         elevation: 8,
         marginBottom: 32,
+    },
+    loginButtonDisabled: {
+        backgroundColor: '#A5D6A7', // Lighter green for disabled state
+        shadowOpacity: 0,
+        elevation: 0,
     },
     loginButtonText: {
         color: '#fff',
