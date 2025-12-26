@@ -1,11 +1,11 @@
 import { Router } from 'express';
-import { getProductionLines, createProductionLine, updateProductionLine, deleteProductionLine } from '../controllers/productionLinesController';
+import { ProductionLinesController } from '../controllers/productionLinesController';
 
 const router = Router();
 
-router.get('/', getProductionLines);
-router.post('/', createProductionLine);
-router.put('/:id', updateProductionLine);
-router.delete('/:id', deleteProductionLine);
+router.get('/', ProductionLinesController.getProductionLines);
+router.post('/', ProductionLinesController.createProductionLine);
+router.put('/:id', ProductionLinesController.updateProductionLine);
+router.delete('/:id', ProductionLinesController.deleteProductionLine);
 
 export default router;

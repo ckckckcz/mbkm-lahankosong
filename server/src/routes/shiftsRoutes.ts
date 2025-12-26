@@ -1,11 +1,11 @@
 import { Router } from 'express';
-import { getShifts, createShift, updateShift, deleteShift } from '../controllers/shiftsController';
+import { ShiftsController } from '../controllers/shiftsController';
 
 const router = Router();
 
-router.get('/', getShifts);
-router.post('/', createShift);
-router.put('/:id', updateShift);
-router.delete('/:id', deleteShift);
+router.get('/', ShiftsController.getShifts);
+router.post('/', ShiftsController.createShift);
+router.put('/:id', ShiftsController.updateShift);
+router.delete('/:id', ShiftsController.deleteShift);
 
 export default router;

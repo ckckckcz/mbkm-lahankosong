@@ -1,11 +1,11 @@
 import { Router } from 'express';
-import { getOperations, createOperation, updateOperation, deleteOperation } from '../controllers/operationsController';
+import { OperationsController } from '../controllers/operationsController';
 
 const router = Router();
 
-router.get('/', getOperations);
-router.post('/', createOperation);
-router.put('/:id', updateOperation);
-router.delete('/:id', deleteOperation);
+router.get('/', OperationsController.getOperations);
+router.post('/', OperationsController.createOperation);
+router.put('/:id', OperationsController.updateOperation);
+router.delete('/:id', OperationsController.deleteOperation);
 
 export default router;
