@@ -5,8 +5,18 @@ import Image from "next/image"
 import { MobileNav } from "./mobile-nav"
 import { useState } from "react"
 
+import { useRouter } from "next/navigation"
+import { AuthService } from "@/services/auth.service"
+
 export function DashboardHeader() {
     const [isOpen, setIsOpen] = useState(false)
+    const router = useRouter()
+
+    const handleLogout = () => {
+        AuthService.logout()
+        setIsOpen(false)
+        router.replace('/login')
+    }
 
     return (
         <header className="sticky top-0 z-40 flex h-16 items-center border-b border-gray-200 bg-white px-4 shadow-sm lg:px-6 justify-between lg:justify-end">
@@ -49,9 +59,7 @@ export function DashboardHeader() {
                                     <p className="text-xs text-gray-500">Production Manager</p>
                                 </div>
                                 <button
-                                    onClick={() => {
-                                        setIsOpen(false)
-                                    }}
+                                    onClick={handleLogout}
                                     className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
                                 >
                                     <LogOut className="h-4 w-4" />
