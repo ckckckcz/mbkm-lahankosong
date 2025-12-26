@@ -1,98 +1,353 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, Dimensions, TextInput, TouchableOpacity, Image } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons, Feather } from '@expo/vector-icons';
+import { BarChart } from 'react-native-gifted-charts';
 
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
 
-export default function HomeScreen() {
+const { width } = Dimensions.get('window');
+
+// --- Mock Data ---
+const KPI_DATA = [
+  {
+    id: 1,
+    title: 'Total Visitors',
+    value: '855',
+    trend: '+4.8%',
+    isPositive: true,
+    icon: 'people',
+    gradientColors: ['#8B5CF6', '#C084FC'] // Purple
+  },
+  {
+    id: 2,
+    title: 'Total Orders',
+    value: '658',
+    trend: '+2.5%',
+    isPositive: true,
+    icon: 'basket',
+    gradientColors: ['#F472B6', '#FBBF24'] // Pink/Orange
+  },
+  {
+    id: 3,
+    title: 'Total Views',
+    value: '788',
+    trend: '-1.8%',
+    isPositive: false,
+    icon: 'eye',
+    gradientColors: ['#3B82F6', '#22D3EE'] // Blue/Cyan
+  },
+  {
+    id: 4,
+    title: 'Conv. Rate',
+    value: '82%',
+    trend: '+4.8%',
+    isPositive: true,
+    icon: 'pie-chart',
+    gradientColors: ['#22D3EE', '#34D399'] // Cyan/Green
+  },
+];
+
+const WEEKLY_DATA = [
+  { value: 40000, label: 'Sun' },
+  { value: 65000, label: 'Mon' },
+  { value: 50000, label: 'Tue' },
+  { value: 60000, label: 'Wed' },
+  { value: 75000, label: 'Thu' },
+  { value: 60000, label: 'Fri' },
+  { value: 70000, label: 'Sat' },
+];
+
+export default function DashboardScreen() {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [overviewTab, setOverviewTab] = useState('Weekly'); // 'Weekly' or 'Today'
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
+    <SafeAreaView style={[styles.container, { backgroundColor: isDarkMode ? '#111' : '#F9FAFB' }]} edges={['top']}>
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+        {/* Header */}
+        <View style={styles.header}>
+          <View style={styles.logoContainer}>
+            <View style={styles.logoIcon}>
+              <View style={[styles.logoDot, { backgroundColor: '#3B82F6' }]} />
+              <View style={[styles.logoDot, { backgroundColor: '#3B82F6', opacity: 0.7 }]} />
+              <View style={[styles.logoDot, { backgroundColor: '#3B82F6', opacity: 0.7 }]} />
+              <View style={[styles.logoDot, { backgroundColor: '#3B82F6', opacity: 0.4 }]} />
+            </View>
+            <Text style={[styles.headerTitle, { color: isDarkMode ? '#FFF' : '#111' }]}>GoodWell</Text>
+          </View>
+
+          <TouchableOpacity
+            style={styles.themeToggle}
+            onPress={() => setIsDarkMode(!isDarkMode)}
+          >
+            <Feather name="sun" size={20} color={!isDarkMode ? '#3B82F6' : '#9CA3AF'} />
+            <Feather name="moon" size={20} color={isDarkMode ? '#3B82F6' : '#9CA3AF'} />
+          </TouchableOpacity>
+        </View>
+
+        {/* Search Bar */}
+        <View style={styles.searchContainer}>
+          <Feather name="search" size={20} color="#9CA3AF" style={styles.searchIcon} />
+          <TextInput
+            style={[styles.searchInput, { color: isDarkMode ? '#FFF' : '#111' }]}
+            placeholder="Search anything..."
+            placeholderTextColor="#9CA3AF"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+          <TouchableOpacity>
+            <Ionicons name="filter" size={20} color="#374151" />
+          </TouchableOpacity>
+        </View>
+
+        {/* KPI Grid */}
+        <View style={styles.kpiGrid}>
+          {KPI_DATA.map((item) => (
+            <View key={item.id} style={[styles.kpiCard, { backgroundColor: isDarkMode ? '#1F2937' : '#FFFFFF' }]}>
+              <View style={styles.kpiHeader}>
+                {/* Fallback to simple view if LinearGradient fails, but using it as requested */}
+                <View
+                  style={[styles.iconContainer, { backgroundColor: item.gradientColors[0] }]}
+                >
+                  <Ionicons name={item.icon as any} size={20} color="#FFF" />
+                </View>
+
+                <View style={styles.kpiMeta}>
+                  <Text style={[styles.kpiValue, { color: isDarkMode ? '#FFF' : '#111' }]}>{item.value}</Text>
+                  <Ionicons
+                    name={item.isPositive ? "trending-up" : "trending-down"}
+                    size={16}
+                    color={item.isPositive ? "#10B981" : "#EF4444"}
+                  />
+                </View>
+              </View>
+
+              <Text style={styles.kpiTitle}>{item.title}</Text>
+              <Text style={[styles.kpiTrend, { color: item.isPositive ? "#10B981" : "#EF4444" }]}>
+                {item.trend}
+              </Text>
+            </View>
+          ))}
+        </View>
+
+        {/* Overview Section */}
+        <View style={styles.sectionHeader}>
+          <Text style={[styles.sectionTitle, { color: isDarkMode ? '#FFF' : '#111' }]}>Overview</Text>
+          <View style={styles.tabSwitch}>
+            <TouchableOpacity
+              style={[styles.tabButton, overviewTab === 'Weekly' && styles.activeTabButton]}
+              onPress={() => setOverviewTab('Weekly')}
+            >
+              <Text style={[styles.tabText, overviewTab === 'Weekly' && styles.activeTabText]}>Weekly</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.tabButton, overviewTab === 'Today' && styles.activeTabButton]}
+              onPress={() => setOverviewTab('Today')}
+            >
+              <Text style={[styles.tabText, overviewTab === 'Today' && styles.activeTabText]}>Today</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        <View style={[styles.chartCard, { backgroundColor: isDarkMode ? '#1F2937' : '#FFFFFF' }]}>
+          <View style={styles.chartContainer}>
+            {/* Y-Axis Labels and Chart */}
+            <BarChart
+              data={WEEKLY_DATA}
+              barWidth={18}
+              spacing={24}
+              roundedTop
+              hideRules
+              xAxisThickness={0}
+              yAxisThickness={0}
+              yAxisTextStyle={{ color: '#9CA3AF', fontSize: 10 }}
+              noOfSections={5}
+              maxValue={100000}
+              frontColor="#3B82F6"
+              labelTextStyle={{ color: '#9CA3AF', fontSize: 10 }}
+              height={200}
+              width={width - 80}
+              yAxisLabelPrefix="$"
+              yAxisLabelSuffix="K"
+
+            />
+          </View>
+        </View>
+
+        <View style={{ height: 100 }} />
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
+  container: {
+    flex: 1,
+  },
+  scrollContent: {
+    padding: 20,
+    paddingBottom: 100,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  logoContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 12,
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  logoIcon: {
+    width: 24,
+    height: 24,
+    flexWrap: 'wrap',
+    flexDirection: 'row',
+    gap: 4,
+    justifyContent: 'center',
+    alignContent: 'center',
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  logoDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 2,
   },
+  headerTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
+  },
+  themeToggle: {
+    flexDirection: 'row',
+    backgroundColor: '#F3F4F6',
+    borderRadius: 20,
+    padding: 4,
+    gap: 4,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 25, // Pill shape
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    marginBottom: 24,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  searchIcon: {
+    marginRight: 10,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 16,
+  },
+  kpiGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    marginBottom: 32,
+    gap: 16,
+  },
+  kpiCard: {
+    width: (width - 56) / 2, // 2 columns with padding/gap
+    borderRadius: 20,
+    padding: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  kpiHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 12,
+  },
+  iconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  kpiMeta: {
+    alignItems: 'flex-end',
+  },
+  kpiValue: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 2,
+  },
+  kpiTitle: {
+    fontSize: 14,
+    color: '#6B7280',
+    fontWeight: '500',
+    marginBottom: 4,
+  },
+  kpiTrend: {
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  tabSwitch: {
+    flexDirection: 'row',
+    backgroundColor: '#F3F4F6',
+    padding: 4,
+    borderRadius: 20,
+  },
+  tabButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 6,
+    borderRadius: 16,
+  },
+  activeTabButton: {
+    backgroundColor: '#FFFFFF',
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  tabText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#6B7280',
+  },
+  activeTabText: {
+    color: '#111',
+    fontWeight: '600',
+  },
+  chartCard: {
+    borderRadius: 24,
+    padding: 20,
+    paddingTop: 30,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  chartContainer: {
+    alignItems: 'center',
+  }
 });

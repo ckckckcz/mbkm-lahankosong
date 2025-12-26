@@ -6,7 +6,7 @@ import { useState } from 'react';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 
 const { width, height } = Dimensions.get('window');
-const API_URL = 'http://192.168.240.147:7860/api/auth/login';
+const API_URL = 'http://192.168.1.7:7860/api/auth/login';
 
 export default function LoginScreen() {
     const router = useRouter();
