@@ -1,4 +1,4 @@
-const API_URL = "http://localhost:7860/api/auth";
+const API_URL = "https://lahankosong-backend.vercel.app/api/auth";
 
 export class AuthService {
     static async login(email: string, password: string): Promise<any> {

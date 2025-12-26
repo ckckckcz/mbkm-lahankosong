@@ -13,8 +13,8 @@ import {
 } from "@/interfaces/dashboard";
 
 
-const API_URL = "http://localhost:7860/api";
-const BASE_URL = "http://localhost:7860";
+const API_URL = "https://lahankosong-backend.vercel.app/api";
+const BASE_URL = "https://lahankosong-backend.vercel.app";
 
 export class DashboardService {
     static async checkConnection(): Promise<boolean> {
