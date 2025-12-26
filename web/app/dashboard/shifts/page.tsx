@@ -66,13 +66,7 @@ export default function ShiftsPage() {
                     start_time: formData.start_time,
                     end_time: formData.end_time,
                     status: formData.status
-                }); // Check if DashboardService.updateShift exists/is generic enough
-                // It calls PUT /shifts/:id. I need to make sure I added updateShift to DashboardService... 
-                // Wait, I only added updateOperation and updateGroup.
-                // I need to add updateShift and updateProductionLine to DashboardService!
-                // I will add them in the next step or patch this file assuming they exist and then fix Service.
-
-                // Assuming service will be fixed:
+                });
                 setShifts(shifts.map(s => s.id === editingId ? updatedShift : s));
             } else {
                 const newShift = await DashboardService.createShift({
