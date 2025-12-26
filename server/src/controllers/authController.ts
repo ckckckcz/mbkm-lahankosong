@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { supabase } from '../config/supabase';
 import jwt from 'jsonwebtoken';
+import { AuthResponse } from '../types';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
@@ -33,7 +34,7 @@ export class AuthController {
                 { expiresIn: '1d' }
             );
 
-            res.status(200).json({
+            const response: AuthResponse = {
                 message: 'Login successful',
                 token,
                 user: {
@@ -42,9 +43,12 @@ export class AuthController {
                     name: users.name,
                     role: users.role
                 }
-            });
-        } catch (error: any) {
-            res.status(500).json({ error: error.message });
+            };
+
+            res.status(200).json(response);
+        } catch (error) {
+            const message = error instanceof Error ? error.message : "An unknown error occurred";
+            res.status(500).json({ error: message });
         }
     }
 
@@ -63,9 +67,15 @@ export class AuthController {
 
             if (error) throw error;
 
-            res.status(201).json({ message: 'User registered successfully', user: data[0] });
-        } catch (error: any) {
-            res.status(500).json({ error: error.message });
+            const response: AuthResponse = {
+                message: 'User registered successfully',
+                user: data[0]
+            };
+
+            res.status(201).json(response);
+        } catch (error) {
+            const message = error instanceof Error ? error.message : "An unknown error occurred";
+            res.status(500).json({ error: message });
         }
     }
 }

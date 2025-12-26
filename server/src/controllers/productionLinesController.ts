@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { supabase } from '../config/supabase';
+import { ProductionLine } from '../types';
 
 export class ProductionLinesController {
     static async getProductionLines(req: Request, res: Response) {
@@ -11,9 +12,10 @@ export class ProductionLinesController {
 
             if (error) throw error;
 
-            res.status(200).json(data);
-        } catch (error: any) {
-            res.status(500).json({ error: error.message });
+            res.status(200).json(data as ProductionLine[]);
+        } catch (error) {
+            const message = error instanceof Error ? error.message : "An unknown error occurred";
+            res.status(500).json({ error: message });
         }
     }
 
@@ -29,9 +31,10 @@ export class ProductionLinesController {
 
             if (error) throw error;
 
-            res.status(201).json(data[0]);
-        } catch (error: any) {
-            res.status(500).json({ error: error.message });
+            res.status(201).json(data[0] as ProductionLine);
+        } catch (error) {
+            const message = error instanceof Error ? error.message : "An unknown error occurred";
+            res.status(500).json({ error: message });
         }
     }
 
@@ -47,9 +50,10 @@ export class ProductionLinesController {
 
             if (error) throw error;
 
-            res.status(200).json(data[0]);
-        } catch (error: any) {
-            res.status(500).json({ error: error.message });
+            res.status(200).json(data[0] as ProductionLine);
+        } catch (error) {
+            const message = error instanceof Error ? error.message : "An unknown error occurred";
+            res.status(500).json({ error: message });
         }
     }
 
@@ -64,8 +68,9 @@ export class ProductionLinesController {
             if (error) throw error;
 
             res.status(200).json({ message: 'Production Line deleted successfully' });
-        } catch (error: any) {
-            res.status(500).json({ error: error.message });
+        } catch (error) {
+            const message = error instanceof Error ? error.message : "An unknown error occurred";
+            res.status(500).json({ error: message });
         }
     }
 }

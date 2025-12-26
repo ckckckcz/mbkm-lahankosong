@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { supabase } from '../config/supabase';
+import { Operation } from '../types';
 
 export class OperationsController {
     static async getOperations(req: Request, res: Response) {
@@ -17,9 +18,10 @@ export class OperationsController {
 
             if (error) throw error;
 
-            res.status(200).json(data);
-        } catch (error: any) {
-            res.status(500).json({ error: error.message });
+            res.status(200).json(data as Operation[]);
+        } catch (error) {
+            const message = error instanceof Error ? error.message : "An unknown error occurred";
+            res.status(500).json({ error: message });
         }
     }
 
@@ -56,9 +58,10 @@ export class OperationsController {
 
             if (error) throw error;
 
-            res.status(201).json(data[0]);
-        } catch (error: any) {
-            res.status(500).json({ error: error.message });
+            res.status(201).json(data[0] as Operation);
+        } catch (error) {
+            const message = error instanceof Error ? error.message : "An unknown error occurred";
+            res.status(500).json({ error: message });
         }
     }
 
@@ -93,9 +96,10 @@ export class OperationsController {
 
             if (error) throw error;
 
-            res.status(200).json(data[0]);
-        } catch (error: any) {
-            res.status(500).json({ error: error.message });
+            res.status(200).json(data[0] as Operation);
+        } catch (error) {
+            const message = error instanceof Error ? error.message : "An unknown error occurred";
+            res.status(500).json({ error: message });
         }
     }
 
@@ -110,8 +114,9 @@ export class OperationsController {
             if (error) throw error;
 
             res.status(200).json({ message: 'Operation deleted successfully' });
-        } catch (error: any) {
-            res.status(500).json({ error: error.message });
+        } catch (error) {
+            const message = error instanceof Error ? error.message : "An unknown error occurred";
+            res.status(500).json({ error: message });
         }
     }
 }

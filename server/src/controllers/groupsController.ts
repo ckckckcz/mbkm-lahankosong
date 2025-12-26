@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { supabase } from '../config/supabase';
+import { Group } from '../types';
 
 export class GroupsController {
     static async getGroups(req: Request, res: Response) {
@@ -11,9 +12,10 @@ export class GroupsController {
 
             if (error) throw error;
 
-            res.status(200).json(data);
-        } catch (error: any) {
-            res.status(500).json({ error: error.message });
+            res.status(200).json(data as Group[]);
+        } catch (error) {
+            const message = error instanceof Error ? error.message : "An unknown error occurred";
+            res.status(500).json({ error: message });
         }
     }
 
@@ -29,9 +31,10 @@ export class GroupsController {
 
             if (error) throw error;
 
-            res.status(201).json(data[0]);
-        } catch (error: any) {
-            res.status(500).json({ error: error.message });
+            res.status(201).json(data[0] as Group);
+        } catch (error) {
+            const message = error instanceof Error ? error.message : "An unknown error occurred";
+            res.status(500).json({ error: message });
         }
     }
 
@@ -47,9 +50,10 @@ export class GroupsController {
 
             if (error) throw error;
 
-            res.status(200).json(data[0]);
-        } catch (error: any) {
-            res.status(500).json({ error: error.message });
+            res.status(200).json(data[0] as Group);
+        } catch (error) {
+            const message = error instanceof Error ? error.message : "An unknown error occurred";
+            res.status(500).json({ error: message });
         }
     }
 
@@ -64,8 +68,9 @@ export class GroupsController {
             if (error) throw error;
 
             res.status(200).json({ message: 'Group deleted successfully' });
-        } catch (error: any) {
-            res.status(500).json({ error: error.message });
+        } catch (error) {
+            const message = error instanceof Error ? error.message : "An unknown error occurred";
+            res.status(500).json({ error: message });
         }
     }
 }
