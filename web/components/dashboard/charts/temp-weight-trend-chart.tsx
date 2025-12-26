@@ -1,5 +1,5 @@
 "use client"
-
+import { useState, useEffect } from "react"
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CustomTooltip } from "../custom-tooltip";
@@ -7,7 +7,24 @@ import { DashboardService } from '@/services/dashboard.service';
 import { TrendData } from '@/interfaces/dashboard';
 
 export function TrendLineChart() {
-    const data: TrendData[] = DashboardService.getTrendData();
+    const [data, setData] = useState<TrendData[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        async function fetchData() {
+            try {
+                const res = await DashboardService.getTrendData();
+                setData(res);
+            } catch (error) {
+                console.error("Failed to fetch trend data", error);
+            } finally {
+                setIsLoading(false);
+            }
+        }
+        fetchData();
+    }, []);
+
+    if (isLoading) return <Card className="h-[300px] flex items-center justify-center"><div className="animate-pulse bg-gray-200 h-32 w-full rounded-xl m-6"></div></Card>;
 
     return (
         <Card>

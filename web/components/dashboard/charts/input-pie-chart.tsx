@@ -1,5 +1,5 @@
 "use client"
-
+import { useState, useEffect } from "react"
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CustomTooltip } from "../custom-tooltip";
@@ -9,7 +9,24 @@ import { InputMethodData } from "@/interfaces/dashboard";
 const COLORS = ['#94a3b8', '#3b82f6'];
 
 export function InputPieChart() {
-    const data: InputMethodData[] = DashboardService.getInputMethodData();
+    const [data, setData] = useState<InputMethodData[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        async function fetchData() {
+            try {
+                const res = await DashboardService.getInputMethodData();
+                setData(res);
+            } catch (error) {
+                console.error("Failed to fetch input method data", error);
+            } finally {
+                setIsLoading(false);
+            }
+        }
+        fetchData();
+    }, []);
+
+    if (isLoading) return <Card className="h-[300px] flex items-center justify-center"><div className="animate-pulse bg-gray-200 h-32 w-32 rounded-full"></div></Card>;
 
     return (
         <Card>

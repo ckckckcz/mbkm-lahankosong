@@ -18,7 +18,6 @@ export default function OperationsPage() {
     const [isFormOpen, setIsFormOpen] = useState(false)
     const [editingId, setEditingId] = useState<number | null>(null)
 
-    // Form States
     const [formData, setFormData] = useState({
         date: new Date().toISOString().split('T')[0],
         group_id: "",
@@ -85,7 +84,10 @@ export default function OperationsPage() {
     }
 
     const handleSave = async () => {
-        if (!formData.group_id || !formData.shift_id || !formData.production_line_id || !formData.temperature || !formData.weight) return
+        if (!formData.group_id || !formData.shift_id || !formData.production_line_id || !formData.temperature || !formData.weight) {
+            alert("Harap lengkapi semua form (Group, Shift, Line, Suhu, Berat)!");
+            return;
+        }
 
         const payload = {
             date: formData.date,

@@ -1,4 +1,5 @@
 "use client"
+import { useState, useEffect } from "react"
 
 import { ArrowUpRight, ArrowDownRight } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
@@ -7,7 +8,24 @@ import { DashboardService } from "@/services/dashboard.service"
 import { OverviewStat } from "@/interfaces/dashboard"
 
 export function OverviewCards() {
-    const stats: OverviewStat[] = DashboardService.getOverviewStats();
+    const [stats, setStats] = useState<OverviewStat[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        async function fetchStats() {
+            try {
+                const data = await DashboardService.getOverviewStats();
+                setStats(data);
+            } catch (error) {
+                console.error("Failed to fetch overview stats", error);
+            } finally {
+                setIsLoading(false);
+            }
+        }
+        fetchStats();
+    }, []);
+
+    if (isLoading) return <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">{[1, 2, 3, 4].map(i => <div key={i} className="h-40 bg-gray-100 animate-pulse rounded-xl"></div>)}</div>;
 
     return (
         <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">

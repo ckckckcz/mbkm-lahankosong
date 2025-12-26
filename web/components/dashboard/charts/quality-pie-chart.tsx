@@ -1,5 +1,6 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CustomTooltip } from "../custom-tooltip";
@@ -9,7 +10,24 @@ import { QualityData } from '@/interfaces/dashboard';
 const COLORS = ['#22c55e', '#ef4444'];
 
 export function QualityPieChart() {
-    const data: QualityData[] = DashboardService.getQualityData();
+    const [data, setData] = useState<QualityData[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        async function fetchData() {
+            try {
+                const res = await DashboardService.getQualityData();
+                setData(res);
+            } catch (error) {
+                console.error("Failed to fetch quality data", error);
+            } finally {
+                setIsLoading(false);
+            }
+        }
+        fetchData();
+    }, []);
+
+    if (isLoading) return <Card className="h-[300px] flex items-center justify-center"><div className="animate-pulse bg-gray-200 h-32 w-32 rounded-full"></div></Card>;
 
     return (
         <Card>

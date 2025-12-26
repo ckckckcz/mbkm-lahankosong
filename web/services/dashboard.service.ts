@@ -173,51 +173,104 @@ export class DashboardService {
     }
 
 
-    static getProductionShiftData(): ProductionShiftData[] {
-        return [
-            { name: 'Shift 1', OK: 380, NotOK: 20 },
-            { name: 'Shift 2', OK: 290, NotOK: 10 },
-            { name: 'Shift 3', OK: 330, NotOK: 20 },
-        ];
-    }
+    // --- Dynamic Chart Data ---
+    static async getProductionShiftData(): Promise<ProductionShiftData[]> {
+        const items = await this.getProductionItems();
+        const shiftMap = new Map<string, { OK: number, NotOK: number }>();
 
-    static getProductionGroupData(): ProductionGroupData[] {
-        return [
-            { name: 'Group Alpha', Produksi: 250 },
-            { name: 'Group Beta', Produksi: 320 },
-            { name: 'Group Gamma', Produksi: 280 },
-            { name: 'Group Delta', Produksi: 200 },
-        ];
-    }
+        items.forEach(item => {
+            const shiftName = item.shift;
+            if (!shiftMap.has(shiftName)) {
+                shiftMap.set(shiftName, { OK: 0, NotOK: 0 });
+            }
+            const current = shiftMap.get(shiftName)!;
+            if (item.quality === 'OK') current.OK++;
+            else current.NotOK++;
+        });
 
-    static getInputMethodData(): InputMethodData[] {
-        return [
-            { name: 'Manual', value: 300 },
-            { name: 'OCR', value: 700 },
-        ];
-    }
-
-    static getQualityData(): QualityData[] {
-        return [
-            { name: 'OK', value: 850 },
-            { name: 'NOT OK', value: 150 },
-        ];
-    }
-
-    static getTrendData(): TrendData[] {
-        return Array.from({ length: 20 }, (_, i) => ({
-            name: `${i + 1}`,
-            Suhu: Math.floor(Math.random() * (90 - 80) + 80), // 80-90
-            Berat: Math.floor(Math.random() * (14 - 11) + 11) + Math.random(), // 11-14
+        return Array.from(shiftMap.entries()).map(([name, data]) => ({
+            name,
+            OK: data.OK,
+            NotOK: data.NotOK
         }));
     }
 
-    static getOverviewStats(): OverviewStat[] {
+    static async getProductionGroupData(): Promise<ProductionGroupData[]> {
+        const items = await this.getProductionItems();
+        const groupMap = new Map<string, number>();
+
+        items.forEach(item => {
+            const groupName = item.group;
+            groupMap.set(groupName, (groupMap.get(groupName) || 0) + 1);
+        });
+
+        return Array.from(groupMap.entries()).map(([name, count]) => ({
+            name,
+            Produksi: count
+        }));
+    }
+
+    static async getInputMethodData(): Promise<InputMethodData[]> {
+        const items = await this.getProductionItems();
+        const methodMap = new Map<string, number>();
+
+        items.forEach(item => {
+            const method = item.inputMethod;
+            methodMap.set(method, (methodMap.get(method) || 0) + 1);
+        });
+
+        return Array.from(methodMap.entries()).map(([name, value]) => ({
+            name,
+            value
+        }));
+    }
+
+    static async getQualityData(): Promise<QualityData[]> {
+        const items = await this.getProductionItems();
+        const qualityMap = new Map<string, number>();
+
+        items.forEach(item => {
+            const quality = item.quality;
+            qualityMap.set(quality, (qualityMap.get(quality) || 0) + 1);
+        });
+
+        return Array.from(qualityMap.entries()).map(([name, value]) => ({
+            name,
+            value
+        }));
+    }
+
+    static async getTrendData(): Promise<TrendData[]> {
+        const items = await this.getProductionItems();
+        // Sort by date ascending
+        const sorted = [...items].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()).slice(-20); // Last 20 items
+
+        return sorted.map((item, index) => ({
+            name: `${index + 1}`,
+            Suhu: item.temperature_val || 0,
+            Berat: item.weight_val || 0
+        }));
+    }
+
+    static async getOverviewStats(): Promise<OverviewStat[]> {
+        const items = await this.getProductionItems();
+        if (items.length === 0) return this.getDefaultStats();
+
+        const totalProduksi = items.length;
+        const totalOK = items.filter(i => i.quality === 'OK').length;
+        const qualityRate = totalProduksi > 0 ? ((totalOK / totalProduksi) * 100).toFixed(1) : 0;
+
+        const totalTemp = items.reduce((sum, i) => sum + (Number(i.temperature_val) || 0), 0);
+        const avgTemp = totalProduksi > 0 ? (totalTemp / totalProduksi).toFixed(1) : 0;
+
+        const totalWeight = items.reduce((sum, i) => sum + (Number(i.weight_val) || 0), 0);
+        const avgWeight = totalProduksi > 0 ? (totalWeight / totalProduksi).toFixed(1) : 0;
+
         return [
             {
                 title: "Total Produksi",
-                value: "12",
-                change: "+17%",
+                value: totalProduksi.toString(),
+                change: "+0%", 
                 positive: true,
                 icon: Activity,
                 color: "text-blue-600",
@@ -226,8 +279,8 @@ export class DashboardService {
             },
             {
                 title: "Quality Rate",
-                value: "75%",
-                change: "+32%",
+                value: `${qualityRate}%`,
+                change: "+0%",
                 positive: true,
                 icon: Percent,
                 color: "text-emerald-600",
@@ -236,8 +289,8 @@ export class DashboardService {
             },
             {
                 title: "Rata-rata Suhu",
-                value: "84.4 °C",
-                change: "-17%",
+                value: `${avgTemp} °C`,
+                change: "+0%",
                 positive: false,
                 icon: Thermometer,
                 color: "text-orange-600",
@@ -246,8 +299,53 @@ export class DashboardService {
             },
             {
                 title: "Rata-rata Berat",
-                value: "12.5 kg",
-                change: "+17%",
+                value: `${avgWeight} kg`,
+                change: "+0%",
+                positive: true,
+                icon: Scale,
+                color: "text-purple-600",
+                bgColor: "bg-purple-50",
+                borderColor: "border-purple-100"
+            }
+        ];
+    }
+
+    private static getDefaultStats(): OverviewStat[] {
+        return [
+            {
+                title: "Total Produksi",
+                value: "0",
+                change: "0%",
+                positive: true,
+                icon: Activity,
+                color: "text-blue-600",
+                bgColor: "bg-blue-50",
+                borderColor: "border-blue-100"
+            },
+            {
+                title: "Quality Rate",
+                value: "0%",
+                change: "0%",
+                positive: true,
+                icon: Percent,
+                color: "text-emerald-600",
+                bgColor: "bg-emerald-50",
+                borderColor: "border-emerald-100"
+            },
+            {
+                title: "Rata-rata Suhu",
+                value: "0 °C",
+                change: "0%",
+                positive: false,
+                icon: Thermometer,
+                color: "text-orange-600",
+                bgColor: "bg-orange-50",
+                borderColor: "border-orange-100"
+            },
+            {
+                title: "Rata-rata Berat",
+                value: "0 kg",
+                change: "0%",
                 positive: true,
                 icon: Scale,
                 color: "text-purple-600",

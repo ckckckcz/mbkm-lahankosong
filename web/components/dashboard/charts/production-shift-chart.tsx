@@ -1,5 +1,5 @@
 "use client"
-
+import { useState, useEffect } from "react"
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CustomTooltip } from "../custom-tooltip";
@@ -7,7 +7,24 @@ import { DashboardService } from "@/services/dashboard.service";
 import { ProductionShiftData } from "@/interfaces/dashboard";
 
 export function ProductionShiftChart() {
-    const data: ProductionShiftData[] = DashboardService.getProductionShiftData();
+    const [data, setData] = useState<ProductionShiftData[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        async function fetchData() {
+            try {
+                const res = await DashboardService.getProductionShiftData();
+                setData(res);
+            } catch (error) {
+                console.error("Failed to fetch shift data", error);
+            } finally {
+                setIsLoading(false);
+            }
+        }
+        fetchData();
+    }, []);
+
+    if (isLoading) return <Card className="h-[300px] flex items-center justify-center"><div className="animate-pulse bg-gray-200 h-32 w-full rounded-xl m-6"></div></Card>;
 
     return (
         <Card>

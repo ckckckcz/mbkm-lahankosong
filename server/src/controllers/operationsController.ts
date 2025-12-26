@@ -39,7 +39,14 @@ export class OperationsController {
             } = req.body;
 
             if (!date || !group_id || !shift_id || !production_line_id || temperature === undefined || weight === undefined) {
-                return res.status(400).json({ error: "Please provide all required fields" });
+                const missing = [];
+                if (!date) missing.push('date');
+                if (!group_id) missing.push('group_id');
+                if (!shift_id) missing.push('shift_id');
+                if (!production_line_id) missing.push('production_line_id');
+                if (temperature === undefined) missing.push('temperature');
+                if (weight === undefined) missing.push('weight');
+                return res.status(400).json({ error: `Please provide all required fields: ${missing.join(', ')}` });
             }
 
             const { data, error } = await supabase
