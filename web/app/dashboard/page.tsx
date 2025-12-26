@@ -6,6 +6,8 @@ import { ProductionShiftChart } from "@/components/dashboard/charts/production-s
 import { ProductionGroupChart } from "@/components/dashboard/charts/production-group-chart"
 import { TrendLineChart } from "@/components/dashboard/charts/temp-weight-trend-chart"
 
+export const dynamic = 'force-dynamic';
+
 export default function DashboardPage() {
     return (
         <div className="space-y-6 mx-auto animate-in fade-in-50 duration-500">
