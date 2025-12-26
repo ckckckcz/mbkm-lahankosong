@@ -9,7 +9,6 @@ export interface Operation {
     quality: 'OK' | 'NOT OK';
     input_method: 'Manual' | 'OCR';
     created_at?: string;
-    // Joined fields
     groups?: { name: string };
     shifts?: { name: string };
     production_lines?: { name: string };
