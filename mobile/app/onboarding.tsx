@@ -259,7 +259,7 @@ export default function OnboardingScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#388E3C', // Greenfields Green Background
+        backgroundColor: '#388E3C',
     },
     contentContainer: {
         paddingHorizontal: 24,

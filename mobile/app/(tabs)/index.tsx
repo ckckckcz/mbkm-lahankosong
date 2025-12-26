@@ -16,7 +16,7 @@ const KPI_DATA = [
     trend: '+4.8%',
     isPositive: true,
     icon: 'people',
-    gradientColors: ['#8B5CF6', '#C084FC'] // Purple
+    gradientColors: ['#66BB6A', '#388E3C'] // Green shades
   },
   {
     id: 2,
@@ -25,7 +25,7 @@ const KPI_DATA = [
     trend: '+2.5%',
     isPositive: true,
     icon: 'basket',
-    gradientColors: ['#F472B6', '#FBBF24'] // Pink/Orange
+    gradientColors: ['#FFA726', '#FB8C00'] // Orange for contrast
   },
   {
     id: 3,
@@ -34,7 +34,7 @@ const KPI_DATA = [
     trend: '-1.8%',
     isPositive: false,
     icon: 'eye',
-    gradientColors: ['#3B82F6', '#22D3EE'] // Blue/Cyan
+    gradientColors: ['#29B6F6', '#039BE5'] // Blue
   },
   {
     id: 4,
@@ -43,7 +43,7 @@ const KPI_DATA = [
     trend: '+4.8%',
     isPositive: true,
     icon: 'pie-chart',
-    gradientColors: ['#22D3EE', '#34D399'] // Cyan/Green
+    gradientColors: ['#388E3C', '#2E7D32'] // Darker green
   },
 ];
 
@@ -69,21 +69,19 @@ export default function DashboardScreen() {
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.logoContainer}>
-            <View style={styles.logoIcon}>
-              <View style={[styles.logoDot, { backgroundColor: '#3B82F6' }]} />
-              <View style={[styles.logoDot, { backgroundColor: '#3B82F6', opacity: 0.7 }]} />
-              <View style={[styles.logoDot, { backgroundColor: '#3B82F6', opacity: 0.7 }]} />
-              <View style={[styles.logoDot, { backgroundColor: '#3B82F6', opacity: 0.4 }]} />
-            </View>
-            <Text style={[styles.headerTitle, { color: isDarkMode ? '#FFF' : '#111' }]}>GoodWell</Text>
+            <Image
+              source={require('../../assets/images/greenfields.png')}
+              style={styles.logoImage}
+              resizeMode="contain"
+            />
           </View>
 
           <TouchableOpacity
             style={styles.themeToggle}
             onPress={() => setIsDarkMode(!isDarkMode)}
           >
-            <Feather name="sun" size={20} color={!isDarkMode ? '#3B82F6' : '#9CA3AF'} />
-            <Feather name="moon" size={20} color={isDarkMode ? '#3B82F6' : '#9CA3AF'} />
+            <Feather name="sun" size={20} color={!isDarkMode ? '#388E3C' : '#9CA3AF'} />
+            <Feather name="moon" size={20} color={isDarkMode ? '#388E3C' : '#9CA3AF'} />
           </TouchableOpacity>
         </View>
 
@@ -98,7 +96,7 @@ export default function DashboardScreen() {
             onChangeText={setSearchQuery}
           />
           <TouchableOpacity>
-            <Ionicons name="filter" size={20} color="#374151" />
+            <Ionicons name="filter" size={20} color="#388E3C" />
           </TouchableOpacity>
         </View>
 
@@ -119,13 +117,13 @@ export default function DashboardScreen() {
                   <Ionicons
                     name={item.isPositive ? "trending-up" : "trending-down"}
                     size={16}
-                    color={item.isPositive ? "#10B981" : "#EF4444"}
+                    color={item.isPositive ? "#388E3C" : "#EF4444"}
                   />
                 </View>
               </View>
 
               <Text style={styles.kpiTitle}>{item.title}</Text>
-              <Text style={[styles.kpiTrend, { color: item.isPositive ? "#10B981" : "#EF4444" }]}>
+              <Text style={[styles.kpiTrend, { color: item.isPositive ? "#388E3C" : "#EF4444" }]}>
                 {item.trend}
               </Text>
             </View>
@@ -156,22 +154,23 @@ export default function DashboardScreen() {
             {/* Y-Axis Labels and Chart */}
             <BarChart
               data={WEEKLY_DATA}
-              barWidth={18}
-              spacing={24}
+              barWidth={16}
+              spacing={20}
               roundedTop
+              roundedBottom
               hideRules
               xAxisThickness={0}
               yAxisThickness={0}
               yAxisTextStyle={{ color: '#9CA3AF', fontSize: 10 }}
               noOfSections={5}
               maxValue={100000}
-              frontColor="#3B82F6"
+              frontColor="#388E3C"
               labelTextStyle={{ color: '#9CA3AF', fontSize: 10 }}
               height={200}
-              width={width - 80}
-              yAxisLabelPrefix="$"
+              width={width - 100} // Increased margin to prevent overflow
+              initialSpacing={10} // Center properly
               yAxisLabelSuffix="K"
-
+              formatYLabel={(value: string) => (parseInt(value) / 1000).toString()} // Convert 40000 to "40"
             />
           </View>
         </View>
@@ -199,21 +198,10 @@ const styles = StyleSheet.create({
   logoContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
   },
-  logoIcon: {
-    width: 24,
-    height: 24,
-    flexWrap: 'wrap',
-    flexDirection: 'row',
-    gap: 4,
-    justifyContent: 'center',
-    alignContent: 'center',
-  },
-  logoDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 2,
+  logoImage: {
+    width: 140,
+    height: 40,
   },
   headerTitle: {
     fontSize: 22,
@@ -255,11 +243,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
-    marginBottom: 32,
-    gap: 16,
+    marginBottom: 24,
+    gap: 12,
   },
   kpiCard: {
-    width: (width - 56) / 2, // 2 columns with padding/gap
+    width: (width - 52) / 2,
     borderRadius: 20,
     padding: 16,
     shadowColor: "#000",

@@ -25,9 +25,9 @@ function CustomTabBar({ state, descriptors, navigation }: any) {
 
           const icons: any = {
             index: 'grid',
-            explore: 'cube',
-            orders: 'basket',
-            stats: 'pie-chart',
+            operation: 'clipboard',
+            ocr: 'scan',
+            master: 'server',
             profile: 'person',
           };
 
@@ -39,7 +39,7 @@ function CustomTabBar({ state, descriptors, navigation }: any) {
             >
               <Ionicons
                 name={icons[route.name] || 'help'}
-                size={24}
+                size={22}
                 color={isFocused ? '#FFFFFF' : '#9CA3AF'}
               />
             </TouchableOpacity>
@@ -57,10 +57,10 @@ export default function TabLayout() {
       screenOptions={{
         headerShown: false,
       }}>
-      <Tabs.Screen name="index" options={{ title: 'Home' }} />
-      <Tabs.Screen name="explore" options={{ title: 'Products' }} />
-      <Tabs.Screen name="orders" options={{ title: 'Orders' }} />
-      <Tabs.Screen name="stats" options={{ title: 'Stats' }} />
+      <Tabs.Screen name="index" options={{ title: 'Dashboard' }} />
+      <Tabs.Screen name="operation" options={{ title: 'Operation' }} />
+      <Tabs.Screen name="ocr" options={{ title: 'OCR' }} />
+      <Tabs.Screen name="master" options={{ title: 'Master Data' }} />
       <Tabs.Screen name="profile" options={{ title: 'Profile' }} />
     </Tabs>
   );
