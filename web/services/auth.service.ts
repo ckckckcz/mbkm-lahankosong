@@ -1,4 +1,4 @@
-const API_URL = "http://localhost:5000/api/auth";
+const API_URL = "http://localhost:7860/api/auth";
 
 export class AuthService {
     static async login(email: string, password: string): Promise<any> {

@@ -13,8 +13,8 @@ import {
 } from "@/interfaces/dashboard";
 
 
-const API_URL = "http://localhost:5000/api";
-const BASE_URL = "http://localhost:5000";
+const API_URL = "http://localhost:7860/api";
+const BASE_URL = "http://localhost:7860";
 
 export class DashboardService {
     static async checkConnection(): Promise<boolean> {
@@ -270,7 +270,7 @@ export class DashboardService {
             {
                 title: "Total Produksi",
                 value: totalProduksi.toString(),
-                change: "+0%", 
+                change: "+0%",
                 positive: true,
                 icon: Activity,
                 color: "text-blue-600",
