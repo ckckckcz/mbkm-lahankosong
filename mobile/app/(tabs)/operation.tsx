@@ -1,14 +1,8 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, FlatList } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, TextInput, ActivityIndicator, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-
-const MOCK_DATA = [
-    { id: '1', date: '2023-10-26', group_name: 'Group A', shift_name: 'Morning', line_name: 'Line 1', temperature: 85.50, weight: 12.50, quality: 'OK', input_method: 'Manual' },
-    { id: '2', date: '2023-10-26', group_name: 'Group B', shift_name: 'Afternoon', line_name: 'Line 2', temperature: 90.20, weight: 11.80, quality: 'NOT OK', input_method: 'OCR' },
-    { id: '3', date: '2023-10-27', group_name: 'Group C', shift_name: 'Night', line_name: 'Line 1', temperature: 84.00, weight: 12.60, quality: 'OK', input_method: 'Manual' },
-    { id: '4', date: '2023-10-27', group_name: 'Group A', shift_name: 'Morning', line_name: 'Line 3', temperature: 88.50, weight: 12.10, quality: 'OK', input_method: 'OCR' },
-];
+import { api } from '@/services/api';
 
 const renderBadge = (quality: string) => {
     let bg = '#E0F2FE';
@@ -30,6 +24,245 @@ const renderBadge = (quality: string) => {
 };
 
 export default function OperationScreen() {
+    const [data, setData] = useState<any[]>([]);
+    const [filteredData, setFilteredData] = useState<any[]>([]);
+    const [activeFilter, setActiveFilter] = useState('All');
+    const [isLoading, setIsLoading] = useState(false);
+
+    const [modalVisible, setModalVisible] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const [groups, setGroups] = useState<any[]>([]);
+    const [shifts, setShifts] = useState<any[]>([]);
+    const [lines, setLines] = useState<any[]>([]);
+
+    const [selectedGroup, setSelectedGroup] = useState<any>(null);
+    const [selectedShift, setSelectedShift] = useState<any>(null);
+    const [selectedLine, setSelectedLine] = useState<any>(null);
+    const [temperature, setTemperature] = useState('');
+    const [weight, setWeight] = useState('');
+    const [quality, setQuality] = useState('OK');
+    const [inputMethod, setInputMethod] = useState('Manual');
+
+    const fetchData = useCallback(async () => {
+        setIsLoading(true);
+        try {
+            const result = await api.operations.getAll();
+            result.sort((a: any, b: any) => new Date(b.created_at || b.date).getTime() - new Date(a.created_at || a.date).getTime());
+            setData(result);
+            setFilteredData(result);
+        } catch (error) {
+            console.error(error);
+            Alert.alert("Error", "Failed to fetch operations");
+        } finally {
+            setIsLoading(false);
+        }
+    }, []);
+
+    const fetchMasterData = async () => {
+        try {
+            const [g, s, l] = await Promise.all([
+                api.groups.getAll(),
+                api.shifts.getAll(),
+                api.productionLines.getAll()
+            ]);
+            setGroups(g);
+            setShifts(s);
+            setLines(l);
+        } catch (e) {
+            console.error(e);
+        }
+    };
+
+    useEffect(() => {
+        fetchData();
+        fetchMasterData();
+    }, [fetchData]);
+
+    useEffect(() => {
+        if (activeFilter === 'All') {
+            setFilteredData(data);
+        } else if (activeFilter === 'OK' || activeFilter === 'NOT OK') {
+            setFilteredData(data.filter(item => item.quality === activeFilter));
+        } else if (activeFilter === 'Today') {
+            const today = new Date().toISOString().split('T')[0];
+            setFilteredData(data.filter(item => item.date === today));
+        } else {
+            setFilteredData(data);
+        }
+    }, [activeFilter, data]);
+
+
+    const handleCreate = async () => {
+        if (!selectedGroup || !selectedShift || !selectedLine || !temperature || !weight) {
+            Alert.alert("Validation", "Please fill all fields");
+            return;
+        }
+
+        setIsSubmitting(true);
+        try {
+            const payload = {
+                group_id: selectedGroup.id,
+                shift_id: selectedShift.id,
+                production_line_id: selectedLine.id,
+                temperature: parseFloat(temperature),
+                weight: parseFloat(weight),
+                quality,
+                input_method: inputMethod,
+                date: new Date().toISOString().split('T')[0]    
+            };
+
+            await api.operations.create(payload);
+            setModalVisible(false);
+            resetForm();
+            fetchData();
+            Alert.alert("Success", "Operation recorded");
+        } catch (error) {
+            console.error(error);
+            Alert.alert("Error", "Failed to record operation");
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const handleDelete = (id: string | number) => {
+        Alert.alert("Delete", "Remove this record?", [
+            { text: "Cancel", style: "cancel" },
+            {
+                text: "Delete",
+                style: "destructive",
+                onPress: async () => {
+                    try {
+                        await api.operations.delete(id);
+                        fetchData();
+                    } catch (e) {
+                        Alert.alert("Error", "Failed to delete");
+                    }
+                }
+            }
+        ]);
+    };
+
+    const resetForm = () => {
+        setSelectedGroup(null);
+        setSelectedShift(null);
+        setSelectedLine(null);
+        setTemperature('');
+        setWeight('');
+        setQuality('OK');
+        setInputMethod('Manual');
+    };
+
+    const renderModal = () => (
+        <Modal
+            animationType="slide"
+            transparent={true}
+            visible={modalVisible}
+            onRequestClose={() => setModalVisible(false)}
+        >
+            <View style={styles.modalOverlay}>
+                <View style={styles.modalContent}>
+                    <View style={styles.modalHeader}>
+                        <Text style={styles.modalTitle}>Record Operation</Text>
+                        <TouchableOpacity onPress={() => setModalVisible(false)}>
+                            <Ionicons name="close" size={24} color="#6B7280" />
+                        </TouchableOpacity>
+                    </View>
+
+                    <ScrollView contentContainerStyle={styles.formContainer}>
+                        {/* Group Selection */}
+                        <Text style={styles.label}>Group</Text>
+                        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipScroll}>
+                            {groups.map(g => (
+                                <TouchableOpacity
+                                    key={g.id}
+                                    style={[styles.chip, selectedGroup?.id === g.id && styles.chipActive]}
+                                    onPress={() => setSelectedGroup(g)}
+                                >
+                                    <Text style={[styles.chipText, selectedGroup?.id === g.id && styles.chipTextActive]}>{g.name}</Text>
+                                </TouchableOpacity>
+                            ))}
+                        </ScrollView>
+
+                        {/* Shift Selection */}
+                        <Text style={styles.label}>Shift</Text>
+                        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipScroll}>
+                            {shifts.map(s => (
+                                <TouchableOpacity
+                                    key={s.id}
+                                    style={[styles.chip, selectedShift?.id === s.id && styles.chipActive]}
+                                    onPress={() => setSelectedShift(s)}
+                                >
+                                    <Text style={[styles.chipText, selectedShift?.id === s.id && styles.chipTextActive]}>{s.name}</Text>
+                                </TouchableOpacity>
+                            ))}
+                        </ScrollView>
+
+                        {/* Line Selection */}
+                        <Text style={styles.label}>Production Line</Text>
+                        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipScroll}>
+                            {lines.map(l => (
+                                <TouchableOpacity
+                                    key={l.id}
+                                    style={[styles.chip, selectedLine?.id === l.id && styles.chipActive]}
+                                    onPress={() => setSelectedLine(l)}
+                                >
+                                    <Text style={[styles.chipText, selectedLine?.id === l.id && styles.chipTextActive]}>{l.name}</Text>
+                                </TouchableOpacity>
+                            ))}
+                        </ScrollView>
+
+                        {/* Values */}
+                        <View style={styles.rowInputs}>
+                            <View style={{ flex: 1, marginRight: 8 }}>
+                                <Text style={styles.label}>Temperature (°C)</Text>
+                                <TextInput
+                                    style={styles.input}
+                                    placeholder="85.5"
+                                    keyboardType="numeric"
+                                    value={temperature}
+                                    onChangeText={setTemperature}
+                                />
+                            </View>
+                            <View style={{ flex: 1, marginLeft: 8 }}>
+                                <Text style={styles.label}>Weight (Kg)</Text>
+                                <TextInput
+                                    style={styles.input}
+                                    placeholder="12.5"
+                                    keyboardType="numeric"
+                                    value={weight}
+                                    onChangeText={setWeight}
+                                />
+                            </View>
+                        </View>
+
+                        {/* Quality */}
+                        <Text style={styles.label}>Quality</Text>
+                        <View style={styles.rowInputs}>
+                            {['OK', 'NOT OK'].map(q => (
+                                <TouchableOpacity
+                                    key={q}
+                                    style={[styles.qualityButton, quality === q && (q === 'OK' ? styles.qualityOk : styles.qualityNotOk)]}
+                                    onPress={() => setQuality(q)}
+                                >
+                                    <Text style={[styles.qualityText, quality === q && { color: '#FFF' }]}>{q}</Text>
+                                </TouchableOpacity>
+                            ))}
+                        </View>
+
+                        <TouchableOpacity
+                            style={[styles.submitButton, isSubmitting && styles.submitButtonDisabled]}
+                            onPress={handleCreate}
+                            disabled={isSubmitting}
+                        >
+                            {isSubmitting ? <ActivityIndicator color="#FFF" /> : <Text style={styles.submitButtonText}>Submit Record</Text>}
+                        </TouchableOpacity>
+                    </ScrollView>
+                </View>
+            </View>
+        </Modal>
+    );
+
     return (
         <SafeAreaView style={styles.container} edges={['top']}>
             <View style={styles.header}>
@@ -37,7 +270,15 @@ export default function OperationScreen() {
                     <Text style={styles.headerTitle}>Operations</Text>
                     <Text style={styles.headerSubtitle}>Monitor daily production</Text>
                 </View>
-                <TouchableOpacity style={styles.addButton} activeOpacity={0.8}>
+                <TouchableOpacity
+                    style={styles.addButton}
+                    activeOpacity={0.8}
+                    onPress={() => {
+                        fetchMasterData();  
+                        resetForm();
+                        setModalVisible(true);
+                    }}
+                >
                     <Ionicons name="add" size={24} color="#FFF" />
                 </TouchableOpacity>
             </View>
@@ -45,64 +286,84 @@ export default function OperationScreen() {
             {/* Filter Slider (Horizontal Scroll) */}
             <View style={styles.filterContainer}>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterContent}>
-                    {['All', 'Today', 'This Week', 'OK', 'Not OK'].map((filter, index) => (
-                        <TouchableOpacity key={filter} style={[styles.filterChip, index === 1 && styles.activeFilterChip]}>
-                            <Text style={[styles.filterText, index === 1 && styles.activeFilterText]}>{filter}</Text>
+                    {['All', 'Today', 'OK', 'NOT OK'].map((filter) => (
+                        <TouchableOpacity
+                            key={filter}
+                            style={[styles.filterChip, activeFilter === filter && styles.activeFilterChip]}
+                            onPress={() => setActiveFilter(filter)}
+                        >
+                            <Text style={[styles.filterText, activeFilter === filter && styles.activeFilterText]}>{filter}</Text>
                         </TouchableOpacity>
                     ))}
                 </ScrollView>
             </View>
 
-            {/* Main Table Content - Horizontal Slider for Columns */}
-            <ScrollView style={styles.mainScrollView} horizontal={false} showsVerticalScrollIndicator={false}>
-                <View style={styles.tableContainer}>
-                    <ScrollView horizontal={true} showsHorizontalScrollIndicator={false}>
-                        <View>
-                            {/* Table Header */}
-                            <View style={styles.tableHeader}>
-                                <Text style={[styles.headerCol, { width: 100 }]}>Date</Text>
-                                <Text style={[styles.headerCol, { width: 100 }]}>Line</Text>
-                                <Text style={[styles.headerCol, { width: 100 }]}>Shift</Text>
-                                <Text style={[styles.headerCol, { width: 100 }]}>Group</Text>
-                                <Text style={[styles.headerCol, { width: 120, textAlign: 'right' }]}>Values</Text>
-                                <Text style={[styles.headerCol, { width: 100, textAlign: 'center' }]}>Qual.</Text>
-                            </View>
-
-                            {/* Table Rows */}
-                            {MOCK_DATA.map((item) => (
-                                <View key={item.id} style={styles.row}>
-                                    <Text style={[styles.cellText, { width: 100, color: '#6B7280' }]}>{item.date}</Text>
-
-                                    <View style={{ width: 100 }}>
-                                        <Text style={styles.cellTextPrimary}>{item.line_name}</Text>
-                                    </View>
-
-                                    <View style={{ width: 100 }}>
-                                        <Text style={styles.cellText}>{item.shift_name}</Text>
-                                    </View>
-
-                                    <View style={{ width: 100 }}>
-                                        <Text style={styles.cellText}>{item.group_name}</Text>
-                                    </View>
-
-                                    <View style={{ width: 120, alignItems: 'flex-end' }}>
-                                        <Text style={[styles.cellText, { fontSize: 13 }]}>
-                                            <Text style={{ color: '#9CA3AF' }}>T:</Text> {item.temperature}°c
-                                        </Text>
-                                        <Text style={[styles.cellText, { fontSize: 13 }]}>
-                                            <Text style={{ color: '#9CA3AF' }}>W:</Text> {item.weight}kg
-                                        </Text>
-                                    </View>
-
-                                    <View style={{ width: 100, alignItems: 'center' }}>
-                                        {renderBadge(item.quality)}
-                                    </View>
-                                </View>
-                            ))}
-                        </View>
-                    </ScrollView>
+            {/* Main Content */}
+            {isLoading ? (
+                <View style={styles.loaderContainer}>
+                    <ActivityIndicator size="large" color="#388E3C" />
                 </View>
-            </ScrollView>
+            ) : (
+                <ScrollView style={styles.mainScrollView} horizontal={false} showsVerticalScrollIndicator={false}>
+                    <View style={styles.tableContainer}>
+                        <ScrollView horizontal={true} showsHorizontalScrollIndicator={false}>
+                            <View>
+                                <View style={styles.tableHeader}>
+                                    <Text style={[styles.headerCol, { width: 100 }]}>Date</Text>
+                                    <Text style={[styles.headerCol, { width: 100 }]}>Line</Text>
+                                    <Text style={[styles.headerCol, { width: 100 }]}>Shift</Text>
+                                    <Text style={[styles.headerCol, { width: 100 }]}>Group</Text>
+                                    <Text style={[styles.headerCol, { width: 120, textAlign: 'right' }]}>Values</Text>
+                                    <Text style={[styles.headerCol, { width: 100, textAlign: 'center' }]}>Qual.</Text>
+                                    <Text style={[styles.headerCol, { width: 50, textAlign: 'center' }]}>Act</Text>
+                                </View>
+
+                                {filteredData.map((item) => (
+                                    <View key={item.id} style={styles.row}>
+                                        <Text style={[styles.cellText, { width: 100, color: '#6B7280', fontSize: 13 }]}>
+                                            {item.date ? new Date(item.date).toLocaleDateString() : '-'}
+                                        </Text>
+
+                                        <View style={{ width: 100 }}>
+                                            <Text style={styles.cellTextPrimary}>{item.production_lines?.name || '-'}</Text>
+                                        </View>
+
+                                        <View style={{ width: 100 }}>
+                                            <Text style={styles.cellText}>{item.shifts?.name || '-'}</Text>
+                                        </View>
+
+                                        <View style={{ width: 100 }}>
+                                            <Text style={styles.cellText}>{item.groups?.name || '-'}</Text>
+                                        </View>
+
+                                        <View style={{ width: 120, alignItems: 'flex-end' }}>
+                                            <Text style={[styles.cellText, { fontSize: 13 }]}>
+                                                <Text style={{ color: '#9CA3AF' }}>T:</Text> {item.temperature}°c
+                                            </Text>
+                                            <Text style={[styles.cellText, { fontSize: 13 }]}>
+                                                <Text style={{ color: '#9CA3AF' }}>W:</Text> {item.weight}kg
+                                            </Text>
+                                        </View>
+
+                                        <View style={{ width: 100, alignItems: 'center' }}>
+                                            {renderBadge(item.quality)}
+                                        </View>
+
+                                        <TouchableOpacity
+                                            style={{ width: 50, alignItems: 'center' }}
+                                            onPress={() => handleDelete(item.id)}
+                                        >
+                                            <Ionicons name="trash-outline" size={18} color="#EF4444" />
+                                        </TouchableOpacity>
+                                    </View>
+                                ))}
+                            </View>
+                        </ScrollView>
+                    </View>
+                </ScrollView>
+            )}
+
+            {renderModal()}
         </SafeAreaView>
     );
 }
@@ -135,7 +396,7 @@ const styles = StyleSheet.create({
         width: 44,
         height: 44,
         borderRadius: 22,
-        backgroundColor: '#388E3C', // Greenfields green
+        backgroundColor: '#388E3C', 
         justifyContent: 'center',
         alignItems: 'center',
         shadowColor: "#388E3C",
@@ -181,7 +442,7 @@ const styles = StyleSheet.create({
     tableContainer: {
         backgroundColor: '#FFFFFF',
         marginTop: 16,
-        marginHorizontal: 0, // Full width for scroll
+        marginHorizontal: 0,    
     },
     tableHeader: {
         flexDirection: 'row',
@@ -223,5 +484,117 @@ const styles = StyleSheet.create({
     badgeText: {
         fontSize: 11,
         fontWeight: '600',
+    },
+    loaderContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+
+    // Modal Styles
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0,0,0,0.5)',
+        justifyContent: 'flex-end',
+    },
+    modalContent: {
+        backgroundColor: '#FFF',
+        borderTopLeftRadius: 24,
+        borderTopRightRadius: 24,
+        padding: 24,
+        maxHeight: '85%',
+    },
+    modalHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 24,
+    },
+    modalTitle: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        color: '#111827',
+    },
+    formContainer: {
+        paddingBottom: 24,
+    },
+    label: {
+        fontSize: 14,
+        fontWeight: '500',
+        color: '#374151',
+        marginBottom: 8,
+        marginTop: 16,
+    },
+    input: {
+        backgroundColor: '#F9FAFB',
+        borderWidth: 1,
+        borderColor: '#E5E7EB',
+        borderRadius: 12,
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+        fontSize: 16,
+        color: '#111827',
+    },
+    rowInputs: {
+        flexDirection: 'row',
+        marginBottom: 8,
+    },
+    chipScroll: {
+        flexGrow: 0,
+        marginBottom: 8,
+    },
+    chip: {
+        paddingHorizontal: 16,
+        paddingVertical: 10,
+        borderRadius: 20,
+        borderWidth: 1,
+        borderColor: '#E5E7EB',
+        marginRight: 10,
+        backgroundColor: '#FFF',
+    },
+    chipActive: {
+        backgroundColor: '#ECFDF5',
+        borderColor: '#388E3C',
+    },
+    chipText: {
+        fontSize: 14,
+        color: '#4B5563',
+    },
+    chipTextActive: {
+        color: '#388E3C',
+        fontWeight: '600',
+    },
+    qualityButton: {
+        flex: 1,
+        paddingVertical: 14,
+        borderRadius: 12,
+        alignItems: 'center',
+        marginHorizontal: 4,
+        backgroundColor: '#F3F4F6',
+    },
+    qualityOk: {
+        backgroundColor: '#16A34A',
+    },
+    qualityNotOk: {
+        backgroundColor: '#DC2626',
+    },
+    qualityText: {
+        fontWeight: '600',
+        color: '#4B5563',
+    },
+    submitButton: {
+        backgroundColor: '#388E3C',
+        borderRadius: 12,
+        paddingVertical: 16,
+        alignItems: 'center',
+        marginTop: 32,
+    },
+    submitButtonDisabled: {
+        backgroundColor: '#A5D6A7',
+    },
+    submitButtonText: {
+        color: '#FFF',
+        fontSize: 16,
+        fontWeight: 'bold',
     },
 });

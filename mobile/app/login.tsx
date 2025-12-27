@@ -103,9 +103,7 @@ export default function LoginScreen() {
 
                     {/* Password Input */}
                     <View style={styles.inputGroup}>
-                        <View style={styles.passwordHeader}>
-                            <Text style={styles.label}>Kata Sandi</Text>
-                        </View>
+                        <Text style={styles.label}>Kata Sandi</Text>
                         <View style={styles.passwordContainer}>
                             <TextInput
                                 style={styles.passwordInput}

@@ -4,11 +4,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons, Feather } from '@expo/vector-icons';
 import { BarChart } from 'react-native-gifted-charts';
 
-
 const { width } = Dimensions.get('window');
-
-// --- Mock Data ---
-const KPI_DATA = [
+const DATA_STATIC = [
   {
     id: 1,
     title: 'Total Visitors',
@@ -16,7 +13,7 @@ const KPI_DATA = [
     trend: '+4.8%',
     isPositive: true,
     icon: 'people',
-    gradientColors: ['#66BB6A', '#388E3C'] // Green shades
+    gradientColors: ['#66BB6A', '#388E3C']
   },
   {
     id: 2,
@@ -25,7 +22,7 @@ const KPI_DATA = [
     trend: '+2.5%',
     isPositive: true,
     icon: 'basket',
-    gradientColors: ['#FFA726', '#FB8C00'] // Orange for contrast
+    gradientColors: ['#FFA726', '#FB8C00']
   },
   {
     id: 3,
@@ -34,7 +31,7 @@ const KPI_DATA = [
     trend: '-1.8%',
     isPositive: false,
     icon: 'eye',
-    gradientColors: ['#29B6F6', '#039BE5'] // Blue
+    gradientColors: ['#29B6F6', '#039BE5']
   },
   {
     id: 4,
@@ -43,7 +40,7 @@ const KPI_DATA = [
     trend: '+4.8%',
     isPositive: true,
     icon: 'pie-chart',
-    gradientColors: ['#388E3C', '#2E7D32'] // Darker green
+    gradientColors: ['#388E3C', '#2E7D32']
   },
 ];
 
@@ -59,7 +56,7 @@ const WEEKLY_DATA = [
 
 export default function DashboardScreen() {
   const [searchQuery, setSearchQuery] = useState('');
-  const [overviewTab, setOverviewTab] = useState('Weekly'); // 'Weekly' or 'Today'
+  const [overviewTab, setOverviewTab] = useState('Weekly');
   const [isDarkMode, setIsDarkMode] = useState(false);
 
   return (
@@ -102,10 +99,9 @@ export default function DashboardScreen() {
 
         {/* KPI Grid */}
         <View style={styles.kpiGrid}>
-          {KPI_DATA.map((item) => (
+          {DATA_STATIC.map((item) => (
             <View key={item.id} style={[styles.kpiCard, { backgroundColor: isDarkMode ? '#1F2937' : '#FFFFFF' }]}>
               <View style={styles.kpiHeader}>
-                {/* Fallback to simple view if LinearGradient fails, but using it as requested */}
                 <View
                   style={[styles.iconContainer, { backgroundColor: item.gradientColors[0] }]}
                 >
@@ -151,7 +147,6 @@ export default function DashboardScreen() {
 
         <View style={[styles.chartCard, { backgroundColor: isDarkMode ? '#1F2937' : '#FFFFFF' }]}>
           <View style={styles.chartContainer}>
-            {/* Y-Axis Labels and Chart */}
             <BarChart
               data={WEEKLY_DATA}
               barWidth={16}
@@ -165,12 +160,11 @@ export default function DashboardScreen() {
               noOfSections={5}
               maxValue={100000}
               frontColor="#388E3C"
-              labelTextStyle={{ color: '#9CA3AF', fontSize: 10 }}
               height={200}
-              width={width - 100} // Increased margin to prevent overflow
-              initialSpacing={10} // Center properly
+              width={width - 100}
+              initialSpacing={10}
               yAxisLabelSuffix="K"
-              formatYLabel={(value: string) => (parseInt(value) / 1000).toString()} // Convert 40000 to "40"
+              formatYLabel={(value: string) => (parseInt(value) / 1000).toString()}
             />
           </View>
         </View>
